@@ -8,6 +8,11 @@
     <h1 class="display-3 fw-bold">🎉 Welcome!</h1>
     <p class="lead mb-3">Your Django project is ready.</p>
     <p class="h5">Framework: <span class="fw-semibold">Bootstrap 5</span></p>
+    <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
+      <a class="btn btn-light btn-lg" href="{% url 'upload_video' %}">Upload Video</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'my_videos' %}">My Videos</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'admin:index' %}">Admin</a>
+    </div>
   </div>
 </section>
 {% endblock %}
