@@ -1,4 +1,11 @@
 from django.urls import path
 from . import views
 
-urlpatterns = [path('', views.index, name='index')]
+urlpatterns = [
+	path('', views.index, name='index'),
+	path('upload/', views.upload_video, name='upload_video'),
+	path('my-videos/', views.my_videos, name='my_videos'),
+	path('video/<int:pk>/', views.video_detail, name='video_detail'),
+	path('video/<int:pk>/edit/', views.edit_video, name='edit_video'),
+	path('video/<int:pk>/delete/', views.delete_video, name='delete_video'),
+]

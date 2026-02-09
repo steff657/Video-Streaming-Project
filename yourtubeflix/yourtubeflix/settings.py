@@ -129,3 +129,16 @@ STATIC_URL = 'static/'
 # Extra settings from packages
 SITE_ID = 1
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Media / uploads
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Upload validation settings
+# 200 MB default max upload size for development (bytes)
+MAX_UPLOAD_SIZE = 200 * 1024 * 1024
+# Allowed video extensions for server-side validation
+ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'mkv']
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
