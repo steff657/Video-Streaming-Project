@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Not Allowed{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="alert alert-danger">You do not have permission to view this video.</div>
+  <a href="{% url 'index' %}" class="btn btn-secondary">Back to home</a>
+</div>
+{% endblock %}

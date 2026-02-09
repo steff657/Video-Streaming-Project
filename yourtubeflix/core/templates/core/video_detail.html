@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ video.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-md-8">
+      <video controls style="width:100%">
+        <source src="{{ video.video_file.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <h3 class="mt-2">{{ video.title }}</h3>
+      <p>{{ video.description }}</p>
+      <p><small class="text-muted">Uploaded by {{ video.owner }} • {{ video.created_at }}</small></p>
+    </div>
+    <div class="col-md-4">
+      <!-- placeholder for comments/likes -->
+      <h5>Comments</h5>
+      <p>Comments will appear here.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
