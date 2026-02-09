@@ -3,12 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from .forms import VideoUploadForm, VideoEditForm
-from .models import Video
+from .models import Video, VideoReaction
 from .forms import CommentForm
 from .models import Comment
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseForbidden
+from django.db.models import Count, Q
 
 
 def index(request):
@@ -75,6 +76,20 @@ def video_detail(request, pk):
     ):
         return render(request, 'core/not_allowed.html', status=403)
 
+    reaction_counts = video.reactions.aggregate(
+        likes=Count('id', filter=Q(value=VideoReaction.Reaction.LIKE)),
+        dislikes=Count(
+            'id', filter=Q(value=VideoReaction.Reaction.DISLIKE)
+        ),
+    )
+    user_reaction = None
+    if request.user.is_authenticated:
+        user_reaction = (
+            video.reactions.filter(user=request.user)
+            .values_list('value', flat=True)
+            .first()
+        )
+
     # comments and comment form
     comments = video.comments.order_by('-created_at')[:100]
     form = CommentForm()
@@ -85,6 +100,9 @@ def video_detail(request, pk):
             'video': video,
             'comments': comments,
             'comment_form': form,
+            'like_count': reaction_counts['likes'],
+            'dislike_count': reaction_counts['dislikes'],
+            'user_reaction': user_reaction,
         },
     )
 
@@ -121,3 +139,52 @@ def delete_comment(request, pk):
         return HttpResponseForbidden()
     comment.soft_delete()
     return JsonResponse({'success': True, 'comment_id': comment.id})
+
+
+@login_required
+@require_POST
+def react_video(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    if (
+        video.visibility == Video.Visibility.PRIVATE
+        and request.user != video.owner
+    ):
+        return HttpResponseForbidden()
+
+    value = request.POST.get('value')
+    if value not in (
+        VideoReaction.Reaction.LIKE,
+        VideoReaction.Reaction.DISLIKE,
+    ):
+        return JsonResponse({'success': False}, status=400)
+
+    reaction, created = VideoReaction.objects.get_or_create(
+        video=video, user=request.user, defaults={'value': value}
+    )
+
+    if not created:
+        if reaction.value == value:
+            reaction.delete()
+            current = None
+        else:
+            reaction.value = value
+            reaction.save(update_fields=['value'])
+            current = value
+    else:
+        current = value
+
+    reaction_counts = video.reactions.aggregate(
+        likes=Count('id', filter=Q(value=VideoReaction.Reaction.LIKE)),
+        dislikes=Count(
+            'id', filter=Q(value=VideoReaction.Reaction.DISLIKE)
+        ),
+    )
+
+    return JsonResponse(
+        {
+            'success': True,
+            'likes': reaction_counts['likes'],
+            'dislikes': reaction_counts['dislikes'],
+            'current': current,
+        }
+    )
