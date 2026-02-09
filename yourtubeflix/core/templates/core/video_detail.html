@@ -11,6 +11,29 @@
         Your browser does not support the video tag.
       </video>
       <h3 class="mt-2">{{ video.title }}</h3>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <button
+          id="like-btn"
+          class="btn btn-sm btn-outline-success {% if user_reaction == 'like' %}active{% endif %}"
+          data-value="like"
+          {% if not user.is_authenticated %}disabled{% endif %}
+        >
+          Like <span id="like-count">{{ like_count }}</span>
+        </button>
+        <button
+          id="dislike-btn"
+          class="btn btn-sm btn-outline-danger {% if user_reaction == 'dislike' %}active{% endif %}"
+          data-value="dislike"
+          {% if not user.is_authenticated %}disabled{% endif %}
+        >
+          Dislike <span id="dislike-count">{{ dislike_count }}</span>
+        </button>
+        {% if not user.is_authenticated %}
+          <small class="text-muted ms-2">
+            <a href="/accounts/login/">Log in</a> to react.
+          </small>
+        {% endif %}
+      </div>
       <p>{{ video.description }}</p>
       <p><small class="text-muted">Uploaded by {{ video.owner }} • {{ video.created_at }}</small></p>
     </div>
@@ -38,6 +61,44 @@
 
         <script>
         (function(){
+          const likeBtn = document.getElementById('like-btn');
+          const dislikeBtn = document.getElementById('dislike-btn');
+          const likeCount = document.getElementById('like-count');
+          const dislikeCount = document.getElementById('dislike-count');
+
+          function setActive(current){
+            if (likeBtn) likeBtn.classList.toggle('active', current === 'like');
+            if (dislikeBtn) dislikeBtn.classList.toggle('active', current === 'dislike');
+          }
+
+          function react(value){
+            fetch('{% url "react_video" video.pk %}', {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+              },
+              body: new URLSearchParams({value})
+            }).then(r=>r.json()).then(resp=>{
+              if (!resp.success) return;
+              likeCount.textContent = resp.likes;
+              dislikeCount.textContent = resp.dislikes;
+              setActive(resp.current);
+            }).catch(()=>alert('Error reacting to video'));
+          }
+
+          if (likeBtn){
+            likeBtn.addEventListener('click', function(){
+              react('like');
+            });
+          }
+
+          if (dislikeBtn){
+            dislikeBtn.addEventListener('click', function(){
+              react('dislike');
+            });
+          }
+
           const form = document.getElementById('comment-form');
           if (form){
             form.addEventListener('submit', function(e){

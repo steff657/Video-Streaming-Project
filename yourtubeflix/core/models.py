@@ -160,3 +160,30 @@ class Comment(models.Model):
                 update_fields=['is_deleted', 'comment_text', 'deleted_at']
             )
 
+
+class VideoReaction(models.Model):
+    class Reaction(models.TextChoices):
+        LIKE = 'like', _('Like')
+        DISLIKE = 'dislike', _('Dislike')
+
+    video = models.ForeignKey(
+        Video, on_delete=models.CASCADE, related_name='reactions'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='video_reactions',
+    )
+    value = models.CharField(max_length=10, choices=Reaction.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['video', 'user'], name='unique_video_reaction'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} {self.value} {self.video}"
+

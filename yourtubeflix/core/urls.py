@@ -9,6 +9,7 @@ urlpatterns = [
     path('video/<int:pk>/edit/', views.edit_video, name='edit_video'),
     path('video/<int:pk>/delete/', views.delete_video, name='delete_video'),
     path('video/<int:pk>/comment/', views.post_comment, name='post_comment'),
+    path('video/<int:pk>/react/', views.react_video, name='react_video'),
     path(
         'comment/<int:pk>/delete/',
         views.delete_comment,
