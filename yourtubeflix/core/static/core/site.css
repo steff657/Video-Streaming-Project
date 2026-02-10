@@ -1,0 +1,116 @@
+:root {
+  --color-bg: #07090f;
+  --color-surface: #f5f7ff;
+  --color-accent: #00f5d4;
+  --color-accent-2: #ff7a18;
+  --color-accent-3: #b9ff2e;
+  --color-border: #1f2633;
+  --color-muted: #8a91a1;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(0, 245, 212, 0.22), transparent 60%),
+    radial-gradient(900px 500px at 85% 10%, rgba(255, 122, 24, 0.25), transparent 65%),
+    radial-gradient(700px 450px at 70% 80%, rgba(185, 255, 46, 0.18), transparent 60%),
+    linear-gradient(180deg, #07090f 0%, #0d1422 50%, #07090f 100%);
+  color: var(--color-surface);
+}
+
+.navbar {
+  background-color: #07090f !important;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .navbar-text {
+  color: var(--color-surface) !important;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+  color: var(--color-accent-2) !important;
+}
+
+.container,
+.card,
+.form-control,
+.form-select,
+.progress,
+.alert {
+  color: #0b0f1a;
+}
+
+.container > .row,
+.card,
+.alert,
+.form-control,
+.form-select {
+  background-color: var(--color-surface);
+}
+
+.card {
+  border: 1px solid var(--color-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #061016;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #00d6ba;
+  border-color: #00d6ba;
+  color: #061016;
+}
+
+.btn-outline-light {
+  border-color: var(--color-accent-2);
+  color: var(--color-accent-2);
+}
+
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+  background-color: var(--color-accent-2);
+  color: #0b0f1a;
+}
+
+.text-muted {
+  color: var(--color-muted) !important;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+a:hover,
+a:focus {
+  color: var(--color-accent-3);
+}
+
+.video-shell {
+  background: #0c1220;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 0 0 1px rgba(0, 245, 212, 0.08), 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+section.hero {
+  min-height: 75vh;
+  display: flex;
+  align-items: center;
+  color: var(--color-surface);
+}
+
+section.hero .lead {
+  color: #cfd6e6;
+}
+
+.table {
+  color: #0b0f1a;
+}
