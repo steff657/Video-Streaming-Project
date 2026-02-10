@@ -6,10 +6,12 @@
 <div class="container py-4">
   <div class="row">
     <div class="col-md-8">
-      <video controls style="width:100%">
+      <div class="video-shell">
+        <video controls style="width:100%">
         <source src="{{ video.video_file.url }}" type="video/mp4">
         Your browser does not support the video tag.
-      </video>
+        </video>
+      </div>
       <h3 class="mt-2">{{ video.title }}</h3>
       <div class="d-flex align-items-center gap-2 mb-2">
         <button
