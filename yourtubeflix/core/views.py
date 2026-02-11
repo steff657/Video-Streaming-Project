@@ -37,7 +37,11 @@ def upload_video(request):
 
 @login_required
 def my_videos(request):
-    videos = Video.objects.filter(owner=request.user).order_by('-created_at')
+    videos = (
+        Video.objects.filter(owner=request.user)
+        .select_related('owner')
+        .order_by('-created_at')
+    )
     return render(request, 'core/my_videos.html', {'videos': videos})
 
 
@@ -68,13 +72,20 @@ def delete_video(request, pk):
 
 
 def video_detail(request, pk):
-    video = get_object_or_404(Video, pk=pk)
+    video = get_object_or_404(
+        Video.objects.select_related('owner')
+        .prefetch_related('comments', 'reactions'),
+        pk=pk
+    )
     # enforce private visibility
     if (
         video.visibility == Video.Visibility.PRIVATE
         and request.user != video.owner
     ):
-        return render(request, 'core/not_allowed.html', status=403)
+        from django.shortcuts import render
+        response = render(request, 'core/not_allowed.html')
+        response.status_code = 403
+        return response
 
     reaction_counts = video.reactions.aggregate(
         likes=Count('id', filter=Q(value=VideoReaction.Reaction.LIKE)),

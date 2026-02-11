@@ -4,12 +4,20 @@
 
 {% block content %}
 <div class="container py-5">
-  <h2>Delete: {{ video.title }}</h2>
-  <p>Are you sure you want to permanently delete this video?</p>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Yes, delete</button>
-    <a href="{% url 'my_videos' %}" class="btn btn-secondary">Cancel</a>
-  </form>
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="delete-section">
+        <h2>Delete: {{ video.title }}</h2>
+        <p>Are you sure you want to permanently delete this video?</p>
+        <div class="delete-button-group">
+          <form method="post" style="flex: 1;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100">Yes, delete</button>
+          </form>
+          <a href="{% url 'my_videos' %}" class="btn btn-secondary w-100">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

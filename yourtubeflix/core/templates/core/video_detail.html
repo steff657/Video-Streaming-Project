@@ -12,41 +12,48 @@
         Your browser does not support the video tag.
         </video>
       </div>
-      <h3 class="mt-2">{{ video.title }}</h3>
-      <div class="d-flex align-items-center gap-2 mb-2">
-        <button
-          id="like-btn"
-          class="btn btn-sm btn-outline-success {% if user_reaction == 'like' %}active{% endif %}"
-          data-value="like"
-          {% if not user.is_authenticated %}disabled{% endif %}
-        >
-          Like <span id="like-count">{{ like_count }}</span>
-        </button>
-        <button
-          id="dislike-btn"
-          class="btn btn-sm btn-outline-danger {% if user_reaction == 'dislike' %}active{% endif %}"
-          data-value="dislike"
-          {% if not user.is_authenticated %}disabled{% endif %}
-        >
-          Dislike <span id="dislike-count">{{ dislike_count }}</span>
-        </button>
-        {% if not user.is_authenticated %}
-          <small class="text-muted ms-2">
-            <a href="{% url 'account_login' %}">Log in</a> to react.
-          </small>
-        {% endif %}
+      <div class="video-detail-section">
+        <h3 class="mt-0">{{ video.title }}</h3>
+        <div class="video-metadata">
+          <div>
+            <small class="text-muted">Uploaded by <strong>{{ video.owner }}</strong> • {{ video.created_at }}</small>
+          </div>
+        </div>
+        <div class="video-reactions">
+          <button
+            id="like-btn"
+            class="btn btn-sm btn-outline-success {% if user_reaction == 'like' %}active{% endif %}"
+            data-value="like"
+            {% if not user.is_authenticated %}disabled{% endif %}
+          >
+            👍 Like <span id="like-count">{{ like_count }}</span>
+          </button>
+          <button
+            id="dislike-btn"
+            class="btn btn-sm btn-outline-danger {% if user_reaction == 'dislike' %}active{% endif %}"
+            data-value="dislike"
+            {% if not user.is_authenticated %}disabled{% endif %}
+          >
+            👎 Dislike <span id="dislike-count">{{ dislike_count }}</span>
+          </button>
+          {% if not user.is_authenticated %}
+            <small class="text-muted ms-2">
+              <a href="{% url 'account_login' %}">Log in</a> to react.
+            </small>
+          {% endif %}
+        </div>
+        <p style="margin-top: 1.5rem; line-height: 1.6;">{{ video.description }}</p>
       </div>
-      <p>{{ video.description }}</p>
-      <p><small class="text-muted">Uploaded by {{ video.owner }} • {{ video.created_at }}</small></p>
     </div>
     <div class="col-md-4">
+      <div class="video-detail-section">
         <h5>Comments</h5>
         {% if user.is_authenticated %}
         <form id="comment-form">
           {% csrf_token %}
           {{ comment_form.comment_text }}
           <div class="mt-2">
-            <button id="comment-submit" class="btn btn-primary btn-sm">Post</button>
+            <button id="comment-submit" class="btn btn-primary btn-sm w-100">Post Comment</button>
           </div>
         </form>
         {% else %}
@@ -57,117 +64,119 @@
           {% for comment in comments %}
             {% include 'core/_comment.html' with comment=comment user=user %}
           {% empty %}
-            <p>No comments yet.</p>
+            <p class="text-muted">No comments yet.</p>
           {% endfor %}
         </div>
-
-        <script>
-        (function(){
-          const likeBtn = document.getElementById('like-btn');
-          const dislikeBtn = document.getElementById('dislike-btn');
-          const likeCount = document.getElementById('like-count');
-          const dislikeCount = document.getElementById('dislike-count');
-
-          function setActive(current){
-            if (likeBtn) likeBtn.classList.toggle('active', current === 'like');
-            if (dislikeBtn) dislikeBtn.classList.toggle('active', current === 'dislike');
-          }
-
-          function react(value){
-            fetch('{% url "react_video" video.pk %}', {
-              method: 'POST',
-              headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCookie('csrftoken')
-              },
-              body: new URLSearchParams({value})
-            }).then(r=>r.json()).then(resp=>{
-              if (!resp.success) return;
-              likeCount.textContent = resp.likes;
-              dislikeCount.textContent = resp.dislikes;
-              setActive(resp.current);
-            }).catch(()=>alert('Error reacting to video'));
-          }
-
-          if (likeBtn){
-            likeBtn.addEventListener('click', function(){
-              react('like');
-            });
-          }
-
-          if (dislikeBtn){
-            dislikeBtn.addEventListener('click', function(){
-              react('dislike');
-            });
-          }
-
-          const form = document.getElementById('comment-form');
-          if (form){
-            form.addEventListener('submit', function(e){
-              e.preventDefault();
-              const btn = document.getElementById('comment-submit');
-              btn.disabled = true;
-              const data = new FormData(form);
-              const url = '{% url "post_comment" video.pk %}';
-              fetch(url, {
-                method: 'POST',
-                headers: {'X-Requested-With': 'XMLHttpRequest'},
-                body: data
-              }).then(r=>r.json()).then(resp=>{
-                btn.disabled = false;
-                if (resp.success){
-                  const list = document.getElementById('comments-list');
-                  const wrapper = document.createElement('div');
-                  wrapper.innerHTML = resp.html;
-                  list.insertBefore(wrapper.firstElementChild, list.firstChild);
-                  form.reset();
-                } else {
-                  alert('Failed to post comment');
-                }
-              }).catch(()=>{btn.disabled=false; alert('Error posting comment');});
-            });
-          }
-
-          document.addEventListener('click', function(e){
-            if (e.target && e.target.classList.contains('delete-comment-btn')){
-              const id = e.target.getAttribute('data-comment-id');
-              if (!confirm('Delete this comment?')) return;
-              fetch('{% url "delete_comment" 0 %}'.replace('/0/', '/' + id + '/'), {
-                method: 'POST',
-                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken')},
-              }).then(r=>r.json()).then(resp=>{
-                if (resp.success){
-                  const el = document.getElementById('comment-' + resp.comment_id);
-                  if (el){
-                    el.querySelector('p')?.remove();
-                    const badge = document.createElement('em');
-                    badge.className = 'text-muted';
-                    badge.textContent = 'Comment deleted';
-                    el.appendChild(badge);
-                    const btn = el.querySelector('.delete-comment-btn'); if (btn) btn.remove();
-                  }
-                }
-              }).catch(()=>alert('Error deleting comment'));
-            }
-          });
-
-          function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-              const cookies = document.cookie.split(';');
-              for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-                }
-              }
-            }
-            return cookieValue;
-          }
-        })();
-        </script>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+(function(){
+  const likeBtn = document.getElementById('like-btn');
+  const dislikeBtn = document.getElementById('dislike-btn');
+  const likeCount = document.getElementById('like-count');
+  const dislikeCount = document.getElementById('dislike-count');
+
+  function setActive(current){
+    if (likeBtn) likeBtn.classList.toggle('active', current === 'like');
+    if (dislikeBtn) dislikeBtn.classList.toggle('active', current === 'dislike');
+  }
+
+  function react(value){
+    fetch('{% url "react_video" video.pk %}', {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: new URLSearchParams({value})
+    }).then(r=>r.json()).then(resp=>{
+      if (!resp.success) return;
+      likeCount.textContent = resp.likes;
+      dislikeCount.textContent = resp.dislikes;
+      setActive(resp.current);
+    }).catch(()=>alert('Error reacting to video'));
+  }
+
+  if (likeBtn){
+    likeBtn.addEventListener('click', function(){
+      react('like');
+    });
+  }
+
+  if (dislikeBtn){
+    dislikeBtn.addEventListener('click', function(){
+      react('dislike');
+    });
+  }
+
+  const form = document.getElementById('comment-form');
+  if (form){
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const btn = document.getElementById('comment-submit');
+      btn.disabled = true;
+      const data = new FormData(form);
+      const url = '{% url "post_comment" video.pk %}';
+      fetch(url, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: data
+      }).then(r=>r.json()).then(resp=>{
+        btn.disabled = false;
+        if (resp.success){
+          const list = document.getElementById('comments-list');
+          const wrapper = document.createElement('div');
+          wrapper.innerHTML = resp.html;
+          list.insertBefore(wrapper.firstElementChild, list.firstChild);
+          form.reset();
+        } else {
+          alert('Failed to post comment');
+        }
+      }).catch(()=>{btn.disabled=false; alert('Error posting comment');});
+    });
+  }
+
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.classList.contains('delete-comment-btn')){
+      const id = e.target.getAttribute('data-comment-id');
+      if (!confirm('Delete this comment?')) return;
+      fetch('{% url "delete_comment" 0 %}'.replace('/0/', '/' + id + '/'), {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken')},
+      }).then(r=>r.json()).then(resp=>{
+        if (resp.success){
+          const el = document.getElementById('comment-' + resp.comment_id);
+          if (el){
+            el.querySelector('p')?.remove();
+            const badge = document.createElement('em');
+            badge.className = 'text-muted';
+            badge.textContent = 'Comment deleted';
+            el.appendChild(badge);
+            const btn = el.querySelector('.delete-comment-btn'); if (btn) btn.remove();
+          }
+        }
+      }).catch(()=>alert('Error deleting comment'));
+    }
+  });
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+})();
+</script>
+
 {% endblock %}
