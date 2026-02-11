@@ -5,13 +5,13 @@
 {% block content %}
 <section class="hero">
   <div class="container text-center px-3">
-    <h1 class="display-3 fw-bold">🎉 Welcome!</h1>
-    <p class="lead mb-3">Your Django project is ready.</p>
-    <p class="h5">Framework: <span class="fw-semibold">Bootstrap 5</span></p>
+    <h1 class="display-3 fw-bold">🎉 Welcome to YourTubeFlix!</h1>
+    <p class="lead mb-3">Share and discover amazing videos with our community.</p>
+    <p class="h5">Built with <span class="fw-semibold">Django</span> and <span class="fw-semibold">Bootstrap 5</span></p>
     <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-      <a class="btn btn-light btn-lg" href="{% url 'upload_video' %}">Upload Video</a>
-      <a class="btn btn-outline-light btn-lg" href="{% url 'my_videos' %}">My Videos</a>
-      <a class="btn btn-outline-light btn-lg" href="{% url 'admin:index' %}">Admin</a>
+      <a class="btn btn-light btn-lg" href="{% url 'upload_video' %}">📹 Upload Video</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'my_videos' %}">🎬 My Videos</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'admin:index' %}">⚙️ Admin</a>
     </div>
   </div>
 </section>

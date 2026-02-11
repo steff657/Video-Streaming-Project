@@ -7,7 +7,26 @@ class VideoUploadForm(forms.ModelForm):
         model = Video
         fields = ['title', 'description', 'tags', 'visibility', 'video_file']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter video title',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter video description',
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Comma-separated tags',
+            }),
+            'visibility': forms.Select(attrs={
+                'class': 'form-select',
+            }),
+            'video_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'video/*',
+            }),
         }
 
 
@@ -16,7 +35,22 @@ class VideoEditForm(forms.ModelForm):
         model = Video
         fields = ['title', 'description', 'tags', 'visibility']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter video title',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Enter video description',
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Comma-separated tags',
+            }),
+            'visibility': forms.Select(attrs={
+                'class': 'form-select',
+            }),
         }
 
 
@@ -24,6 +58,7 @@ class CommentForm(forms.Form):
     comment_text = forms.CharField(
         widget=forms.Textarea(
             attrs={
+                'class': 'form-control',
                 'rows': 2,
                 'placeholder': 'Add a comment...',
             }

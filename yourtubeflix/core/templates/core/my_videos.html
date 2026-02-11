@@ -4,26 +4,25 @@
 
 {% block content %}
 <div class="container py-5">
-  <h2>My Videos</h2>
-  <div class="row">
+  <h2 style="color: var(--color-surface);">My Videos</h2>
+  <div class="videos-grid">
     {% for v in videos %}
-    <div class="col-md-4 mb-4">
-      <div class="card">
-        {% if v.thumbnail %}
-        <img src="{{ v.thumbnail.url }}" class="card-img-top" alt="{{ v.title }}">
-        {% endif %}
-        <div class="card-body">
-          <h5 class="card-title">{{ v.title }}</h5>
-          <p class="card-text"><small class="text-muted">{{ v.visibility }}</small></p>
-          <a href="{% url 'video_detail' v.pk %}" class="btn btn-sm btn-primary">View</a>
-          <a href="{% url 'edit_video' v.pk %}" class="btn btn-sm btn-secondary">Edit</a>
-          <a href="{% url 'delete_video' v.pk %}" class="btn btn-sm btn-danger">Delete</a>
-        </div>
+    <div class="video-card">
+      {% if v.thumbnail %}
+      <img src="{{ v.thumbnail.url }}" class="card-img-top" alt="{{ v.title }}">
+      {% endif %}
+      <div class="card-body">
+        <h5 class="card-title">{{ v.title }}</h5>
+        <p class="card-text"><small class="text-muted">{{ v.visibility }}</small></p>
+        <a href="{% url 'video_detail' v.pk %}" class="btn btn-sm btn-primary">View</a>
+        <a href="{% url 'edit_video' v.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+        <a href="{% url 'delete_video' v.pk %}" class="btn btn-sm btn-danger">Delete</a>
       </div>
     </div>
     {% empty %}
-    <div class="col-12">
+    <div class="no-videos-message" style="grid-column: 1 / -1;">
       <p>No videos uploaded yet.</p>
+      <a href="{% url 'upload_video' %}" class="btn btn-primary">Upload Your First Video</a>
     </div>
     {% endfor %}
   </div>
