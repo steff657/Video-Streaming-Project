@@ -163,6 +163,32 @@ ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv
 7. Configure HTTPS with SSL/TLS
 8. Use environment variables for sensitive data
 
+### Heroku Deployment
+1. Create the app and add Postgres:
+```bash
+heroku create your-app-name
+heroku addons:create heroku-postgresql:essential-0
+```
+2. Set required config vars:
+```bash
+heroku config:set DJANGO_SECRET_KEY="replace-with-a-long-random-value"
+heroku config:set DEBUG=False
+heroku config:set ALLOWED_HOSTS=your-app-name.herokuapp.com
+heroku config:set CSRF_TRUSTED_ORIGINS=https://your-app-name.herokuapp.com
+```
+3. Deploy:
+```bash
+git push heroku main
+```
+4. Optional worker tuning:
+```bash
+heroku config:set WEB_CONCURRENCY=2
+```
+
+Note: Heroku dyno filesystem is ephemeral. Uploaded media files in `MEDIA_ROOT`
+will not persist across dyno restarts. For production uploads, use external
+object storage (for example, Amazon S3 or Cloudinary).
+
 ### Deployment Example (Gunicorn + Nginx):
 ```bash
 # Install production dependencies
