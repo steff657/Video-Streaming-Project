@@ -162,6 +162,8 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
 # allauth login settings
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Media / uploads
 MEDIA_URL = '/media/'
