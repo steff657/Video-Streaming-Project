@@ -17,6 +17,7 @@ ffmpeg-python==0.2.1
 # Utilities
 python-decouple==3.8
 Pillow==10.1.0
+dj-database-url==2.2.0
 
 # Development (optional)
 django-extensions==3.2.3
