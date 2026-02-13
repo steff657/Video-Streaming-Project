@@ -1,21 +1,21 @@
 <div class="media mb-3" id="comment-{{ comment.id }}">
-  <div class="me-3">
-    <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width:45px;height:45px;flex-shrink:0;">
+  <div>
+    <div class="comment-avatar">
       <strong>{{ comment.user.username|first|upper }}</strong>
     </div>
   </div>
   <div class="media-body">
-    <h6 class="mt-0 mb-1" style="color: #0b0f1a; font-weight: 600;">
+    <h6 class="mt-0 mb-1">
       {{ comment.user.username }}
       <small class="text-muted">• {{ comment.created_at }}</small>
     </h6>
     {% if comment.is_deleted %}
       <em class="text-muted">Comment deleted</em>
     {% else %}
-      <p style="color: #333; margin: 0.5rem 0; line-height: 1.5;">{{ comment.comment_text|linebreaksbr }}</p>
+      <p class="mb-2">{{ comment.comment_text|linebreaksbr }}</p>
     {% endif %}
     {% if user.is_authenticated and comment.user == user and not comment.is_deleted %}
-      <button class="btn btn-sm btn-link text-danger delete-comment-btn" data-comment-id="{{ comment.id }}" style="padding: 0; text-decoration: none;">Delete</button>
+      <button class="btn btn-sm btn-link text-danger delete-comment-btn p-0" data-comment-id="{{ comment.id }}">Delete</button>
     {% endif %}
   </div>
 </div>
