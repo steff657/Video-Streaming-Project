@@ -25,7 +25,7 @@ A Django-based video streaming platform with user authentication, video uploads,
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/yourusername/Video-Streaming-Project.git
-cd Video-Streaming-Project/yourtubeflix
+cd Video-Streaming-Project
 ```
 
 ### 2. Create a virtual environment
@@ -70,24 +70,26 @@ Visit `http://localhost:8000` in your browser.
 
 ## Project Structure
 
-```
-yourtubeflix/
+```text
+Video-Streaming-Project/
 ├── core/                 # Main app
-│   ├── migrations/      # Database migrations
-│   ├── static/          # CSS, JS, images
-│   ├── templates/       # HTML templates
-│   ├── admin.py        # Admin configuration
-│   ├── forms.py        # Form definitions
-│   ├── models.py       # Database models
-│   ├── urls.py         # URL routing
-│   └── views.py        # View logic
-├── yourtubeflix/        # Project settings
-│   ├── settings.py     # Django settings
-│   ├── urls.py         # Main URL config
-│   └── wsgi.py         # WSGI application
-├── manage.py           # Django management script
-├── requirements.txt    # Python dependencies
-└── .env.example        # Environment variables template
+│   ├── migrations/       # Database migrations
+│   ├── static/           # CSS, JS, images
+│   ├── templates/        # HTML templates
+│   ├── admin.py          # Admin configuration
+│   ├── forms.py          # Form definitions
+│   ├── models.py         # Database models
+│   ├── urls.py           # URL routing
+│   └── views.py          # View logic
+├── yourtubeflix/         # Project settings package
+│   ├── settings.py       # Django settings
+│   ├── urls.py           # Main URL config
+│   └── wsgi.py           # WSGI application
+├── manage.py             # Django management script
+├── requirements.txt      # Python dependencies
+├── Procfile              # Heroku web process
+├── runtime.txt           # Heroku Python runtime
+└── .env.example          # Environment variables template
 ```
 
 ## Models
