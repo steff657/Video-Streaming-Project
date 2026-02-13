@@ -5,12 +5,12 @@
 {% block content %}
 <section class="hero">
   <div class="container text-center px-3">
-    <h1 class="display-3 fw-bold">Welcome to YourTubeFlix!</h1>
-    <p class="lead mb-3">Share and discover amazing videos with our community.</p>
+    <h1 class="display-3 fw-bold">Broadcast Yourself</h1>
+    <p class="lead mb-3">Upload, manage, and watch videos in a familiar creator-first layout.</p>
     <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-      <a class="btn btn-light btn-lg" href="{% url 'upload_video' %}">📹 Upload Video</a>
-      <a class="btn btn-outline-light btn-lg" href="{% url 'my_videos' %}">🎬 My Videos</a>
-      <a class="btn btn-outline-light btn-lg" href="{% url 'admin:index' %}">⚙️ Admin</a>
+      <a class="btn btn-danger btn-lg" href="{% url 'upload_video' %}">Upload Video</a>
+      <a class="btn btn-outline-secondary btn-lg" href="{% url 'my_videos' %}">My Videos</a>
+      <a class="btn btn-outline-secondary btn-lg" href="{% url 'admin:index' %}">Admin Panel</a>
     </div>
   </div>
 </section>

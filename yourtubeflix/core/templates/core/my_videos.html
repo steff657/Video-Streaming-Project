@@ -3,27 +3,40 @@
 {% block title %}My Videos{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <h2>My Videos</h2>
-  <div class="row">
+<div class="container py-4 py-md-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">My Videos</h2>
+    <a href="{% url 'upload_video' %}" class="btn btn-danger btn-sm">Upload</a>
+  </div>
+  <div class="yt-video-grid">
     {% for v in videos %}
-    <div class="col-md-4 mb-4">
-      <div class="card">
+    <article class="yt-video-card">
+      <a href="{% url 'video_detail' v.pk %}" class="yt-thumb-wrap">
         {% if v.thumbnail %}
-        <img src="{{ v.thumbnail.url }}" class="card-img-top" alt="{{ v.title }}">
+          <img src="{{ v.thumbnail.url }}" class="yt-thumb" alt="{{ v.title }}">
+        {% else %}
+          <div class="yt-thumb yt-thumb-fallback">
+            <i class="fa-solid fa-play"></i>
+          </div>
         {% endif %}
-        <div class="card-body">
-          <h5 class="card-title">{{ v.title }}</h5>
-          <p class="card-text"><small class="text-muted">{{ v.visibility }}</small></p>
-          <a href="{% url 'video_detail' v.pk %}" class="btn btn-sm btn-primary">View</a>
-          <a href="{% url 'edit_video' v.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+      </a>
+      <div class="yt-video-body">
+        <h3 class="yt-video-title">
+          <a href="{% url 'video_detail' v.pk %}">{{ v.title }}</a>
+        </h3>
+        <p class="yt-video-channel mb-1">{{ v.owner.username }}</p>
+        <p class="yt-video-meta mb-0">{{ v.created_at|date:"M j, Y" }} • {{ v.visibility|title }}</p>
+        <div class="yt-video-actions">
+          <a href="{% url 'video_detail' v.pk %}" class="btn btn-sm btn-outline-secondary">Watch</a>
+          <a href="{% url 'edit_video' v.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
           <a href="{% url 'delete_video' v.pk %}" class="btn btn-sm btn-danger">Delete</a>
         </div>
       </div>
-    </div>
+    </article>
     {% empty %}
-    <div class="col-12">
-      <p>No videos uploaded yet.</p>
+    <div class="yt-empty-state">
+      <p class="mb-2">No videos uploaded yet.</p>
+      <a href="{% url 'upload_video' %}" class="btn btn-danger btn-sm">Upload your first video</a>
     </div>
     {% endfor %}
   </div>

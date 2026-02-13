@@ -7,7 +7,7 @@
   <div class="row">
     <div class="col-md-8">
       <div class="video-shell">
-        <video controls style="width:100%">
+        <video controls class="w-100">
         <source src="{{ video.video_file.url }}" type="video/mp4">
         Your browser does not support the video tag.
         </video>
@@ -42,7 +42,7 @@
             </small>
           {% endif %}
         </div>
-        <p style="margin-top: 1.5rem; line-height: 1.6;">{{ video.description }}</p>
+        <p class="mt-4 mb-0">{{ video.description }}</p>
       </div>
     </div>
     <div class="col-md-4">
