@@ -36,9 +36,11 @@
       <a class="yt-icon-btn" href="{% url 'my_videos' %}" title="My Videos">
         <i class="fa-solid fa-clapperboard"></i>
       </a>
-      <a class="yt-icon-btn" href="{% url 'admin:index' %}" title="Admin">
-        <i class="fa-solid fa-shield-halved"></i>
-      </a>
+      {% if user.is_staff or user.is_superuser %}
+        <a class="yt-icon-btn" href="{% url 'admin:index' %}" title="Admin">
+          <i class="fa-solid fa-shield-halved"></i>
+        </a>
+      {% endif %}
       {% if user.is_authenticated %}
         <span class="yt-user-pill">{{ user.username|first|upper }}</span>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'account_logout' %}">Logout</a>

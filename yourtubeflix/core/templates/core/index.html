@@ -10,7 +10,9 @@
     <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
       <a class="btn btn-danger btn-lg" href="{% url 'upload_video' %}">Upload Video</a>
       <a class="btn btn-outline-secondary btn-lg" href="{% url 'my_videos' %}">My Videos</a>
-      <a class="btn btn-outline-secondary btn-lg" href="{% url 'admin:index' %}">Admin Panel</a>
+      {% if user.is_staff or user.is_superuser %}
+        <a class="btn btn-outline-secondary btn-lg" href="{% url 'admin:index' %}">Admin Panel</a>
+      {% endif %}
     </div>
   </div>
 </section>
