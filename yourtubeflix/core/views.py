@@ -82,7 +82,6 @@ def video_detail(request, pk):
         video.visibility == Video.Visibility.PRIVATE
         and request.user != video.owner
     ):
-        from django.shortcuts import render
         response = render(request, 'core/not_allowed.html')
         response.status_code = 403
         return response
