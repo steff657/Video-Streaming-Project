@@ -1,3 +1,4 @@
+import mimetypes
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -103,11 +104,13 @@ def video_detail(request, pk):
     # comments and comment form
     comments = video.comments.order_by('-created_at')[:100]
     form = CommentForm()
+    content_type, _ = mimetypes.guess_type(video.video_file.name)
     return render(
         request,
         'core/video_detail.html',
         {
             'video': video,
+            'video_mime_type': content_type or 'application/octet-stream',
             'comments': comments,
             'comment_form': form,
             'like_count': reaction_counts['likes'],

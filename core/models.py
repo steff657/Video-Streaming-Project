@@ -7,6 +7,8 @@ from django.core.files import File as DjangoFile
 import subprocess
 import os
 import uuid
+import shutil
+import tempfile
 from django.utils import timezone
 
 
@@ -59,6 +61,119 @@ class Video(models.Model):
     def __str__(self):
         return f"{self.title} ({self.owner})"
 
+    def _resolve_ffmpeg_executable(self):
+        ffmpeg_bin = shutil.which('ffmpeg')
+        if ffmpeg_bin:
+            return ffmpeg_bin
+        try:
+            import imageio_ffmpeg
+
+            return imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            return None
+
+    def _copy_video_to_temp_input(self):
+        suffix = os.path.splitext(self.video_file.name or '')[1] or '.bin'
+        with tempfile.NamedTemporaryFile(
+            suffix=suffix, delete=False
+        ) as temp_input:
+            with self.video_file.open('rb') as source:
+                if hasattr(source, 'chunks'):
+                    for chunk in source.chunks():
+                        temp_input.write(chunk)
+                else:
+                    while True:
+                        chunk = source.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        temp_input.write(chunk)
+            return temp_input.name
+
+    def transcode_to_mp4(self):
+        if not self.video_file:
+            return False
+
+        current_ext = os.path.splitext(
+            self.video_file.name or ''
+        )[1].lower()
+        if current_ext == '.mp4':
+            return False
+
+        ffmpeg_bin = self._resolve_ffmpeg_executable()
+        if not ffmpeg_bin:
+            return False
+
+        temp_input_path = None
+        used_temp_input = False
+        temp_output_path = None
+        original_name = self.video_file.name
+
+        try:
+            try:
+                temp_input_path = self.video_file.path
+            except Exception:
+                temp_input_path = self._copy_video_to_temp_input()
+                used_temp_input = True
+
+            base_name = os.path.splitext(
+                os.path.basename(self.video_file.name or '')
+            )[0]
+            output_name = f"{base_name}-{uuid.uuid4().hex[:8]}.mp4"
+            with tempfile.NamedTemporaryFile(
+                suffix='.mp4', delete=False
+            ) as temp_output:
+                temp_output_path = temp_output.name
+
+            cmd = [
+                ffmpeg_bin,
+                '-y',
+                '-i',
+                temp_input_path,
+                '-c:v',
+                'libx264',
+                '-preset',
+                'veryfast',
+                '-crf',
+                '23',
+                '-pix_fmt',
+                'yuv420p',
+                '-c:a',
+                'aac',
+                '-b:a',
+                '128k',
+                '-movflags',
+                '+faststart',
+                temp_output_path,
+            ]
+            subprocess.run(
+                cmd,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
+            with open(temp_output_path, 'rb') as f:
+                self.video_file.save(
+                    f"videos/{output_name}", DjangoFile(f), save=False
+                )
+
+            return original_name != self.video_file.name
+        except Exception:
+            return False
+        finally:
+            try:
+                if used_temp_input and temp_input_path and os.path.exists(
+                    temp_input_path
+                ):
+                    os.remove(temp_input_path)
+            except Exception:
+                pass
+            try:
+                if temp_output_path and os.path.exists(temp_output_path):
+                    os.remove(temp_output_path)
+            except Exception:
+                pass
+
     def generate_thumbnail(self, time='00:00:01'):
         """Generate a thumbnail using ffmpeg if available.
 
@@ -109,6 +224,16 @@ class Video(models.Model):
     def save(self, *args, **kwargs):
         # Ensure the instance is saved first so `video_file.path` exists
         super().save(*args, **kwargs)
+
+        original_name = self.video_file.name if self.video_file else None
+        did_transcode = self.transcode_to_mp4()
+        if did_transcode:
+            super().save(update_fields=['video_file'])
+            if original_name and original_name != self.video_file.name:
+                try:
+                    self.video_file.storage.delete(original_name)
+                except Exception:
+                    pass
 
         # Generate thumbnail if missing
         if not self.thumbnail and self.video_file:
@@ -186,4 +311,3 @@ class VideoReaction(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.value} {self.video}"
-
