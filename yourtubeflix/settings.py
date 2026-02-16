@@ -30,27 +30,11 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-def _csv_env(name, default=''):
-    raw = os.environ.get(name, default)
-    return [item.strip() for item in raw.split(',') if item.strip()]
-
-
-ALLOWED_HOSTS = _csv_env(
-    'ALLOWED_HOSTS',
-    (
-        'localhost,127.0.0.1,'
-        'youtubeflix-8527d2e162cd.herokuapp.com'
-    ),
-)
-
-CSRF_TRUSTED_ORIGINS = _csv_env(
-    'CSRF_TRUSTED_ORIGINS',
-    (
-        'http://localhost:8000,'
-        'http://127.0.0.1:8000,'
-        'https://yourtubeflix-b9bff9094aa7.herokuapp.com,'
-        'https://youtubeflix-8527d2e162cd.herokuapp.com'
-    ),
+ALLOWED_HOSTS = (
+    os.environ.get(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1,youtubeflix-8527d2e162cd.herokuapp.com',
+    ).split(',')
 )
 
 
@@ -185,10 +169,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Extra settings from packages
 SITE_ID = 1
-CORS_ALLOWED_ORIGINS = _csv_env(
+CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:3000,http://localhost:8000',
-)
+).split(',')
 
 # allauth login settings
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
