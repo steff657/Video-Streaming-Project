@@ -7,6 +7,7 @@ from django.core.files import File as DjangoFile
 import subprocess
 import os
 import uuid
+from pathlib import Path as FilePath
 from django.utils import timezone
 
 
@@ -58,6 +59,17 @@ class Video(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.owner})"
+
+    @property
+    def content_type(self):
+        ext = FilePath(self.video_file.name).suffix.lower()
+        mime_map = {
+            '.mp4': 'video/mp4',
+            '.mov': 'video/quicktime',
+            '.webm': 'video/webm',
+            '.mkv': 'video/x-matroska',
+        }
+        return mime_map.get(ext, 'application/octet-stream')
 
     def generate_thumbnail(self, time='00:00:01'):
         """Generate a thumbnail using ffmpeg if available.

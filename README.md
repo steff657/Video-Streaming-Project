@@ -162,6 +162,7 @@ ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv
 6. Use a production WSGI server (Gunicorn)
 7. Configure HTTPS with SSL/TLS
 8. Use environment variables for sensitive data
+9. Use object storage for uploaded media files (Heroku disk is ephemeral)
 
 ### Deployment Example (Gunicorn + Nginx):
 ```bash
@@ -171,6 +172,19 @@ pip install gunicorn whitenoise
 # Run with Gunicorn
 gunicorn yourtubeflix.wsgi:application --bind 0.0.0.0:8000
 ```
+
+### Heroku Media Storage (S3)
+Set these config vars in Heroku:
+
+```bash
+heroku config:set USE_S3=True
+heroku config:set AWS_ACCESS_KEY_ID=...
+heroku config:set AWS_SECRET_ACCESS_KEY=...
+heroku config:set AWS_STORAGE_BUCKET_NAME=...
+heroku config:set AWS_S3_REGION_NAME=us-east-1
+```
+
+Without external storage, uploaded files can disappear after dyno restart.
 
 ## Requirements for Features
 
