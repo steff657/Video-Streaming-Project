@@ -461,6 +461,36 @@ form select:focus,
   padding: 1rem;
 }
 
+.auth-shell {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--yt-border);
+  border-radius: 16px;
+  background: var(--yt-surface);
+  padding: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.auth-card ul {
+  margin-bottom: 0;
+}
+
+.auth-link {
+  color: #0d6efd;
+}
+
+.auth-link:hover {
+  color: #0a58ca;
+  text-decoration: underline;
+}
+
 @media (max-width: 992px) {
   .yt-topbar {
     padding: 0 0.7rem;
