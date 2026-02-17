@@ -3,6 +3,16 @@ from .models import Video
 
 
 class VideoUploadForm(forms.ModelForm):
+    tags = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Comma-separated tags',
+            }
+        ),
+    )
+
     class Meta:
         model = Video
         fields = ['title', 'description', 'tags', 'visibility', 'video_file']
@@ -16,10 +26,6 @@ class VideoUploadForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Enter video description',
             }),
-            'tags': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Comma-separated tags',
-            }),
             'visibility': forms.Select(attrs={
                 'class': 'form-select',
             }),
@@ -29,8 +35,28 @@ class VideoUploadForm(forms.ModelForm):
             }),
         }
 
+    def clean_tags(self):
+        raw_tags = self.cleaned_data.get('tags', '')
+        if not raw_tags:
+            return []
+        return [
+            tag.strip()
+            for tag in raw_tags.split(',')
+            if tag.strip()
+        ]
+
 
 class VideoEditForm(forms.ModelForm):
+    tags = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Comma-separated tags',
+            }
+        ),
+    )
+
     class Meta:
         model = Video
         fields = ['title', 'description', 'tags', 'visibility']
@@ -44,14 +70,25 @@ class VideoEditForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Enter video description',
             }),
-            'tags': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Comma-separated tags',
-            }),
             'visibility': forms.Select(attrs={
                 'class': 'form-select',
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.tags:
+            self.fields['tags'].initial = ', '.join(self.instance.tags)
+
+    def clean_tags(self):
+        raw_tags = self.cleaned_data.get('tags', '')
+        if not raw_tags:
+            return []
+        return [
+            tag.strip()
+            for tag in raw_tags.split(',')
+            if tag.strip()
+        ]
 
 
 class CommentForm(forms.Form):

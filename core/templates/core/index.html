@@ -3,17 +3,75 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="container text-center px-3">
-    <h1 class="display-3 fw-bold">Broadcast Yourself</h1>
-    <p class="lead mb-3">Upload, manage, and watch videos in a familiar creator-first layout.</p>
-    <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-      <a class="btn btn-danger btn-lg" href="{% url 'upload_video' %}">Upload Video</a>
-      <a class="btn btn-outline-secondary btn-lg" href="{% url 'my_videos' %}">My Videos</a>
-      {% if user.is_staff or user.is_superuser %}
-        <a class="btn btn-outline-secondary btn-lg" href="{% url 'admin:index' %}">Admin Panel</a>
-      {% endif %}
-    </div>
+<div class="container py-4 py-md-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Recently Uploaded</h2>
   </div>
-</section>
+  <div class="yt-video-grid">
+    {% for v in videos %}
+    <article class="yt-video-card">
+      <a href="{% url 'video_detail' v.pk %}" class="yt-thumb-wrap">
+        {% if v.thumbnail %}
+          <img src="{{ v.thumbnail.url }}" class="yt-thumb" alt="{{ v.title }}">
+        {% else %}
+          <div class="yt-thumb yt-thumb-fallback">
+            <i class="fa-solid fa-play"></i>
+          </div>
+        {% endif %}
+        <span class="yt-duration-badge" data-video-url="{{ v.video_file.url }}">--:--</span>
+      </a>
+      <div class="yt-video-body">
+        <div class="yt-video-info">
+          <span class="yt-channel-avatar">{{ v.owner.username|first|upper }}</span>
+          <div class="yt-video-meta-copy">
+            <h3 class="yt-video-title">
+              <a href="{% url 'video_detail' v.pk %}">{{ v.title }}</a>
+            </h3>
+            <p class="yt-video-channel mb-1">{{ v.owner.username }}</p>
+            <p class="yt-video-meta mb-0">{{ v.created_at|date:"M j, Y" }}</p>
+          </div>
+        </div>
+        <div class="yt-video-actions">
+          <a href="{% url 'video_detail' v.pk %}" class="btn btn-sm btn-outline-secondary">Watch</a>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div class="yt-empty-state">
+      <p class="mb-0">No videos uploaded yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+(function () {
+  function formatDuration(totalSeconds) {
+    if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '--:--';
+    const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+    const minutes = Math.floor((totalSeconds / 60) % 60).toString().padStart(2, '0');
+    const hours = Math.floor(totalSeconds / 3600);
+    return hours > 0 ? `${hours}:${minutes}:${seconds}` : `${Math.floor(totalSeconds / 60)}:${seconds}`;
+  }
+
+  const badges = document.querySelectorAll('.yt-duration-badge[data-video-url]');
+  badges.forEach((badge) => {
+    const src = badge.getAttribute('data-video-url');
+    if (!src) return;
+
+    const probe = document.createElement('video');
+    probe.preload = 'metadata';
+    probe.src = src;
+
+    probe.onloadedmetadata = function () {
+      badge.textContent = formatDuration(probe.duration);
+      probe.removeAttribute('src');
+      probe.load();
+    };
+
+    probe.onerror = function () {
+      badge.textContent = '--:--';
+    };
+  });
+})();
+</script>
 {% endblock %}

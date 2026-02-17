@@ -69,8 +69,15 @@ document.getElementById('upload-form').addEventListener('submit', function(e){
   };
 
   xhr.onload = function(){
+    const resp = (() => {
+      try {
+        return JSON.parse(xhr.responseText);
+      } catch (e) {
+        return null;
+      }
+    })();
+
     if (xhr.status >= 200 && xhr.status < 300){
-      const resp = JSON.parse(xhr.responseText);
       if (resp.success){
         status.innerHTML = '<div class="alert alert-success">Upload complete. Video ID: ' + resp.video_id + '</div>';
         form.reset();
@@ -78,7 +85,11 @@ document.getElementById('upload-form').addEventListener('submit', function(e){
         status.innerHTML = '<div class="alert alert-danger">Upload failed.</div>';
       }
     } else {
-      status.innerHTML = '<div class="alert alert-danger">Server error during upload.</div>';
+      if (resp && resp.errors) {
+        status.innerHTML = '<div class="alert alert-danger">Upload failed: ' + JSON.stringify(resp.errors) + '</div>';
+      } else {
+        status.innerHTML = '<div class="alert alert-danger">Server error during upload.</div>';
+      }
     }
   };
 
