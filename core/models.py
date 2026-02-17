@@ -9,6 +9,7 @@ import os
 import uuid
 from pathlib import Path as FilePath
 from django.utils import timezone
+from .video_processing import generate_thumbnail_from_video
 
 
 def validate_file_size(file):
@@ -86,25 +87,14 @@ class Video(models.Model):
             return
 
         thumb_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
-        os.makedirs(thumb_dir, exist_ok=True)
-        filename = f"{uuid.uuid4().hex}.jpg"
-        output_path = os.path.join(thumb_dir, filename)
-
-        cmd = [
-            'ffmpeg', '-y', '-ss', time, '-i', input_path,
-            '-vframes', '1', '-q:v', '2', output_path,
-        ]
-
-        try:
-            subprocess.run(
-                cmd,
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-        except Exception:
-            # ffmpeg not available or failed; do nothing
+        output_path = generate_thumbnail_from_video(
+            input_path=input_path,
+            output_dir=thumb_dir,
+            time=time,
+        )
+        if not output_path:
             return
+        filename = os.path.basename(output_path)
 
         # Save generated thumbnail into the ImageField
         try:
@@ -118,9 +108,93 @@ class Video(models.Model):
             except OSError:
                 pass
 
+    def transcode_to_mp4(self):
+        """Transcode uploaded video to MP4 (H.264 video + AAC audio)."""
+        if not self.video_file:
+            return False
+
+        try:
+            input_path = self.video_file.path
+        except Exception:
+            return False
+
+        if not os.path.exists(input_path):
+            return False
+
+        output_dir = os.path.join(settings.MEDIA_ROOT, 'videos')
+        os.makedirs(output_dir, exist_ok=True)
+        temp_output_name = f"{uuid.uuid4().hex}.mp4"
+        temp_output_path = os.path.join(output_dir, temp_output_name)
+
+        cmd = [
+            'ffmpeg', '-y', '-i', input_path,
+            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+            '-c:a', 'aac', '-b:a', '128k',
+            '-movflags', '+faststart',
+            temp_output_path,
+        ]
+
+        try:
+            subprocess.run(
+                cmd,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            try:
+                if os.path.exists(temp_output_path):
+                    os.remove(temp_output_path)
+            except OSError:
+                pass
+            return False
+
+        old_name = self.video_file.name
+        stem = FilePath(old_name).stem or 'video'
+        final_name = f"{stem}-{uuid.uuid4().hex[:8]}.mp4"
+
+        try:
+            with open(temp_output_path, 'rb') as f:
+                self.video_file.save(final_name, DjangoFile(f), save=False)
+        finally:
+            try:
+                os.remove(temp_output_path)
+            except OSError:
+                pass
+
+        if old_name != self.video_file.name:
+            try:
+                self.video_file.storage.delete(old_name)
+            except Exception:
+                pass
+        return True
+
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        can_change_video_file = (
+            update_fields is None or 'video_file' in update_fields
+        )
+        video_file_changed = False
+        if self.video_file and can_change_video_file:
+            if self.pk:
+                previous = (
+                    Video.objects.filter(pk=self.pk)
+                    .only('video_file')
+                    .first()
+                )
+                video_file_changed = (
+                    previous is None
+                    or previous.video_file.name != self.video_file.name
+                )
+            else:
+                video_file_changed = True
+
         # Ensure the instance is saved first so `video_file.path` exists
         super().save(*args, **kwargs)
+
+        # Normalize uploads to MP4/H.264/AAC only on new or changed file uploads
+        if video_file_changed and self.transcode_to_mp4():
+            super().save(update_fields=['video_file'])
 
         # Generate thumbnail if missing
         if not self.thumbnail and self.video_file:
