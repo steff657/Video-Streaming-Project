@@ -13,6 +13,7 @@ from django.db.models import Count, Q
 
 
 def index(request):
+    query = request.GET.get('q', '').strip()
     queryset = Video.objects.select_related('owner')
     if request.user.is_authenticated:
         queryset = queryset.filter(
@@ -21,8 +22,53 @@ def index(request):
     else:
         queryset = queryset.filter(visibility=Video.Visibility.PUBLIC)
 
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(owner__username__icontains=query)
+        )
+
     videos = queryset.order_by('-created_at')[:24]
-    return render(request, 'core/index.html', {'videos': videos})
+    return render(
+        request,
+        'core/index.html',
+        {'videos': videos, 'search_query': query},
+    )
+
+
+def search_videos(request):
+    query = request.GET.get('q', '').strip()
+    queryset = Video.objects.select_related('owner')
+
+    if request.user.is_authenticated:
+        queryset = queryset.filter(
+            Q(visibility=Video.Visibility.PUBLIC) | Q(owner=request.user)
+        )
+    else:
+        queryset = queryset.filter(visibility=Video.Visibility.PUBLIC)
+
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(owner__username__icontains=query)
+        )
+
+    videos = queryset.order_by('-created_at')[:24]
+    html = render_to_string(
+        'core/_video_grid.html',
+        {'videos': videos},
+        request=request,
+    )
+    return JsonResponse(
+        {
+            'success': True,
+            'html': html,
+            'count': videos.count(),
+            'query': query,
+        }
+    )
 
 
 @login_required
