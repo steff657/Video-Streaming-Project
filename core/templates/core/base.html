@@ -23,8 +23,15 @@
         <span>YourTubeFlix</span>
       </a>
     </div>
-    <form class="yt-search" onsubmit="return false;">
-      <input type="search" placeholder="Search videos" aria-label="Search videos">
+    <form class="yt-search" id="yt-search-form" action="{% url 'index' %}" method="get">
+      <input
+        type="search"
+        name="q"
+        id="yt-search-input"
+        placeholder="Search videos"
+        aria-label="Search videos"
+        value="{{ search_query|default:'' }}"
+      >
       <button type="submit" aria-label="Search">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
@@ -65,5 +72,74 @@
   </div>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('yt-search-form');
+      const input = document.getElementById('yt-search-input');
+      if (!form || !input) return;
+
+      let debounceTimer = null;
+      let activeController = null;
+
+      async function runSearch() {
+        const query = input.value.trim();
+        const params = new URLSearchParams();
+        if (query) params.set('q', query);
+
+        const resultsRoot = document.getElementById('yt-video-results');
+        const title = document.getElementById('search-results-title');
+        if (!resultsRoot || !title) {
+          window.location.href = `${form.action}${params.toString() ? `?${params.toString()}` : ''}`;
+          return;
+        }
+
+        const url = `{% url 'search_videos' %}?${params.toString()}`;
+        if (activeController) {
+          activeController.abort();
+        }
+        activeController = new AbortController();
+
+        try {
+          const response = await fetch(url, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+            signal: activeController.signal,
+          });
+          if (!response.ok) throw new Error('Search request failed');
+          const data = await response.json();
+          if (!data.success) throw new Error('Invalid search response');
+
+          resultsRoot.innerHTML = data.html;
+          title.textContent = data.query ? `Search results for "${data.query}"` : 'Recently Uploaded';
+          const nextUrl = `${form.action}${params.toString() ? `?${params.toString()}` : ''}`;
+          window.history.replaceState({}, '', nextUrl);
+
+          if (typeof window.initVideoDurations === 'function') {
+            window.initVideoDurations(resultsRoot);
+          }
+        } catch (error) {
+          if (error.name === 'AbortError') return;
+          window.location.href = `${form.action}${params.toString() ? `?${params.toString()}` : ''}`;
+        } finally {
+          activeController = null;
+        }
+      }
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+          debounceTimer = null;
+        }
+        await runSearch();
+      });
+
+      input.addEventListener('input', function () {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          runSearch();
+        }, 300);
+      });
+    })();
+  </script>
 </body>
 </html>
