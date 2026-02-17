@@ -13,7 +13,16 @@ from django.db.models import Count, Q
 
 
 def index(request):
-    return render(request, 'core/index.html')
+    queryset = Video.objects.select_related('owner')
+    if request.user.is_authenticated:
+        queryset = queryset.filter(
+            Q(visibility=Video.Visibility.PUBLIC) | Q(owner=request.user)
+        )
+    else:
+        queryset = queryset.filter(visibility=Video.Visibility.PUBLIC)
+
+    videos = queryset.order_by('-created_at')[:24]
+    return render(request, 'core/index.html', {'videos': videos})
 
 
 @login_required

@@ -226,10 +226,18 @@ else:
     }
 
 # Upload validation settings
-# 200 MB default max upload size for development (bytes)
-MAX_UPLOAD_SIZE = 200 * 1024 * 1024
+# 500 MB default max upload size (bytes)
+MAX_UPLOAD_SIZE = 500 * 1024 * 1024
+# Maximum allowed upload resolution (4K UHD)
+MAX_VIDEO_WIDTH = 3840
+MAX_VIDEO_HEIGHT = 2160
 # Allowed video extensions for server-side validation
-ALLOWED_VIDEO_EXTENSIONS = ['mp4', 'mov', 'webm', 'mkv']
+ALLOWED_VIDEO_EXTENSIONS = [
+    'mp4', 'mov', 'webm', 'mkv', 'm4v',
+    'avi', 'wmv', 'flv',
+    'mpg', 'mpeg', '3gp', 'ogv',
+    'ts', 'm2ts',
+]
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

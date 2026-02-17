@@ -10,6 +10,8 @@ import uuid
 from pathlib import Path as FilePath
 from django.utils import timezone
 from .video_processing import generate_thumbnail_from_video
+import tempfile
+import json
 
 
 def validate_file_size(file):
@@ -19,6 +21,82 @@ def validate_file_size(file):
             _('File too large. Maximum size is %(max)s bytes.'),
             params={'max': max_size},
         )
+
+
+def validate_video_resolution(file):
+    max_width = getattr(settings, 'MAX_VIDEO_WIDTH', 3840)
+    max_height = getattr(settings, 'MAX_VIDEO_HEIGHT', 2160)
+    temp_path = None
+    probe_path = None
+
+    try:
+        if hasattr(file, 'temporary_file_path'):
+            probe_path = file.temporary_file_path()
+        else:
+            suffix = FilePath(getattr(file, 'name', '')).suffix or '.tmp'
+            with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=suffix,
+            ) as tmp:
+                for chunk in file.chunks():
+                    tmp.write(chunk)
+                temp_path = tmp.name
+            probe_path = temp_path
+            file.seek(0)
+
+        cmd = [
+            'ffprobe',
+            '-v',
+            'error',
+            '-select_streams',
+            'v:0',
+            '-show_entries',
+            'stream=width,height',
+            '-of',
+            'json',
+            probe_path,
+        ]
+        completed = subprocess.run(
+            cmd,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        data = json.loads(completed.stdout or '{}')
+        streams = data.get('streams') or []
+        if not streams:
+            return
+
+        width = streams[0].get('width')
+        height = streams[0].get('height')
+        if (
+            isinstance(width, int)
+            and isinstance(height, int)
+            and (width > max_width or height > max_height)
+        ):
+            raise ValidationError(
+                _(
+                    'Video resolution too high. Maximum allowed is '
+                    '%(max_width)dx%(max_height)d.'
+                ),
+                params={
+                    'max_width': max_width,
+                    'max_height': max_height,
+                },
+            )
+    except FileNotFoundError:
+        # ffprobe unavailable in runtime; skip resolution validation.
+        return
+    except subprocess.CalledProcessError:
+        # Probe failure should not block uploads.
+        return
+    finally:
+        if temp_path:
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
 
 
 class Video(models.Model):
@@ -51,6 +129,7 @@ class Video(models.Model):
                 )
             ),
             validate_file_size,
+            validate_video_resolution,
         ],
     )
     thumbnail = models.ImageField(
@@ -69,6 +148,16 @@ class Video(models.Model):
             '.mov': 'video/quicktime',
             '.webm': 'video/webm',
             '.mkv': 'video/x-matroska',
+            '.m4v': 'video/x-m4v',
+            '.avi': 'video/x-msvideo',
+            '.wmv': 'video/x-ms-wmv',
+            '.flv': 'video/x-flv',
+            '.mpg': 'video/mpeg',
+            '.mpeg': 'video/mpeg',
+            '.3gp': 'video/3gpp',
+            '.ogv': 'video/ogg',
+            '.ts': 'video/mp2t',
+            '.m2ts': 'video/mp2t',
         }
         return mime_map.get(ext, 'application/octet-stream')
 

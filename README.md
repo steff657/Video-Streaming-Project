@@ -188,10 +188,12 @@ Without external storage, uploaded files can disappear after dyno restart.
 
 ## Requirements for Features
 
-- **FFmpeg:** Install for automatic thumbnail generation
+- **FFmpeg/FFprobe:** Install for automatic thumbnail generation and resolution validation
   - Windows: `choco install ffmpeg`
   - macOS: `brew install ffmpeg`
   - Ubuntu: `apt-get install ffmpeg`
+  - Heroku: add an `Aptfile` with `ffmpeg` and enable the apt buildpack:
+    - `heroku buildpacks:add --index 1 heroku-community/apt`
 
 ## Troubleshooting
 
@@ -205,9 +207,10 @@ python manage.py migrate --run-syncdb
 python manage.py collectstatic
 ```
 
-### FFmpeg not found
-- Ensure ffmpeg is installed and in your PATH
-- Thumbnails will be generated if available, otherwise skipped gracefully
+### FFmpeg/FFprobe not found
+- Ensure `ffmpeg` and `ffprobe` are installed and in your PATH
+- Thumbnails are generated with ffmpeg if available
+- Resolution validation is enforced with ffprobe if available
 
 ## License
 
