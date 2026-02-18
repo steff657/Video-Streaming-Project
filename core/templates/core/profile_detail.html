@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+  <div class="card p-3 p-md-4 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      {% if profile_obj.profile_picture %}
+        <img src="{{ profile_obj.profile_picture.url }}" alt="{{ profile_user.username }}" style="width:84px;height:84px;border-radius:50%;object-fit:cover;">
+      {% else %}
+        <div class="yt-user-pill" style="width:84px;height:84px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">
+          {{ profile_user.username|first|upper }}
+        </div>
+      {% endif %}
+      <div>
+        <h2 class="mb-1">{{ profile_obj.effective_display_name }}</h2>
+        <p class="text-muted mb-1">@{{ profile_user.username }}</p>
+        {% if profile_obj.bio %}
+          <p class="mb-0">{{ profile_obj.bio }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Videos</h3>
+    {% if user == profile_user %}
+      <a href="{% url 'my_videos' %}" class="btn btn-sm btn-outline-secondary">Manage my videos</a>
+    {% endif %}
+  </div>
+  {% include 'core/_video_grid.html' with videos=videos %}
+</div>
+{% endblock %}

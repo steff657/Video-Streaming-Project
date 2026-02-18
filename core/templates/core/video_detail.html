@@ -16,7 +16,7 @@
         <h3 class="mt-0">{{ video.title }}</h3>
         <div class="video-metadata">
           <div>
-            <small class="text-muted">Uploaded by <strong>{{ video.owner }}</strong> • {{ video.created_at }}</small>
+            <small class="text-muted">Uploaded by <strong><a href="{% url 'profile_detail' video.owner.username %}">{{ video.owner }}</a></strong> • {{ video.created_at }}</small>
           </div>
         </div>
         <div class="video-reactions">
@@ -42,6 +42,19 @@
             </small>
           {% endif %}
         </div>
+        {% if user.is_authenticated and user != video.owner %}
+        <div class="mt-3">
+          <details>
+            <summary class="text-danger">Report this video</summary>
+            <form id="report-form" class="mt-2">
+              {% csrf_token %}
+              {{ report_form.reason }}
+              <button type="submit" class="btn btn-sm btn-outline-danger mt-2">Submit report</button>
+              <div id="report-status" class="mt-2"></div>
+            </form>
+          </details>
+        </div>
+        {% endif %}
         <p class="mt-4 mb-0">{{ video.description }}</p>
       </div>
     </div>
@@ -136,6 +149,29 @@
           alert('Failed to post comment');
         }
       }).catch(()=>{btn.disabled=false; alert('Error posting comment');});
+    });
+  }
+
+  const reportForm = document.getElementById('report-form');
+  if (reportForm) {
+    reportForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const reportStatus = document.getElementById('report-status');
+      const data = new FormData(reportForm);
+      fetch('{% url "report_video" video.pk %}', {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: data
+      }).then(r => r.json()).then(resp => {
+        if (resp.success) {
+          reportStatus.innerHTML = '<div class="alert alert-success py-1">Report submitted.</div>';
+          reportForm.reset();
+        } else {
+          reportStatus.innerHTML = '<div class="alert alert-danger py-1">Could not submit report.</div>';
+        }
+      }).catch(() => {
+        reportStatus.innerHTML = '<div class="alert alert-danger py-1">Could not submit report.</div>';
+      });
     });
   }
 

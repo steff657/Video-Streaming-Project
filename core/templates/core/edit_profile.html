@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5" style="max-width: 760px;">
+  <h2 class="mb-3">Customize Profile</h2>
+  <form method="post" enctype="multipart/form-data" class="card p-3 p-md-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Profile picture</label>
+      {{ form.profile_picture }}
+      {% if profile_obj.profile_picture %}
+        <div class="mt-2">
+          <img src="{{ profile_obj.profile_picture.url }}" alt="Profile picture" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">
+        </div>
+      {% endif %}
+      {% for error in form.profile_picture.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Display name</label>
+      {{ form.display_name }}
+      {% for error in form.display_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Bio</label>
+      {{ form.bio }}
+      {% for error in form.bio.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Save profile</button>
+      <a href="{% url 'profile_detail' user.username %}" class="btn btn-outline-secondary">View profile</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
