@@ -186,6 +186,20 @@ heroku config:set AWS_S3_REGION_NAME=us-east-1
 
 Without external storage, uploaded files can disappear after dyno restart.
 
+### Post-Deploy Health Check
+Run this command after deployment to verify there are no pending migrations
+and critical tables (`core_profile`, `core_video`, `core_report`) exist:
+
+```bash
+python manage.py check_deploy_health
+```
+
+On Heroku:
+
+```bash
+heroku run python manage.py check_deploy_health --app your-app-name
+```
+
 ## Requirements for Features
 
 - **FFmpeg/FFprobe:** Install for automatic thumbnail generation and resolution validation

@@ -1,4 +1,7 @@
+from io import StringIO
+
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -182,3 +185,8 @@ class PlatformFeaturesTests(TestCase):
                 action=AdminActionLog.Action.DELETE_USER
             ).exists()
         )
+
+    def test_deploy_health_check_command_passes(self):
+        output = StringIO()
+        call_command('check_deploy_health', stdout=output)
+        self.assertIn('Deployment health check passed', output.getvalue())
