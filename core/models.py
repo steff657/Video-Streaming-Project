@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
 from django.core.files import File as DjangoFile
+from django.contrib.auth import get_user_model
 import subprocess
 import os
 import uuid
@@ -361,4 +362,111 @@ class VideoReaction(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.value} {self.video}"
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='profile',
+    )
+    display_name = models.CharField(max_length=150, blank=True)
+    bio = models.TextField(blank=True)
+    profile_picture = models.ImageField(
+        upload_to='profiles/', null=True, blank=True
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile for {self.user.username}"
+
+    @property
+    def effective_display_name(self):
+        return self.display_name.strip() or self.user.username
+
+
+class Report(models.Model):
+    class Status(models.TextChoices):
+        OPEN = 'open', _('Open')
+        RESOLVED = 'resolved', _('Resolved')
+
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='submitted_reports',
+    )
+    video = models.ForeignKey(
+        Video,
+        on_delete=models.SET_NULL,
+        related_name='reports',
+        null=True,
+        blank=True,
+    )
+    reason = models.TextField()
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='resolved_reports',
+    )
+
+    def __str__(self):
+        target = f"video:{self.video_id}" if self.video_id else "unknown"
+        return f"Report {self.pk} by {self.reporter_id} ({target})"
+
+    def resolve(self, by_user):
+        self.status = self.Status.RESOLVED
+        self.resolved_by = by_user
+        self.resolved_at = timezone.now()
+        self.save(update_fields=['status', 'resolved_by', 'resolved_at'])
+
+
+class AdminActionLog(models.Model):
+    class Action(models.TextChoices):
+        DELETE_VIDEO = 'delete_video', _('Delete Video')
+        DELETE_USER = 'delete_user', _('Delete User')
+        RESOLVE_REPORT = 'resolve_report', _('Resolve Report')
+
+    admin_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='admin_action_logs',
+    )
+    action = models.CharField(max_length=50, choices=Action.choices)
+    target_user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+    target_video = models.ForeignKey(
+        Video,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+    target_report = models.ForeignKey(
+        Report,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+    details = models.JSONField(blank=True, default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.action} by {self.admin_user_id} at {self.created_at}"
 

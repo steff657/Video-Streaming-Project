@@ -1,15 +1,21 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.contrib import messages
-from .forms import VideoUploadForm, VideoEditForm
-from .models import Video, VideoReaction
-from .forms import CommentForm
-from .models import Comment
+from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count, Q
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
-from django.http import HttpResponseForbidden
-from django.db.models import Count, Q
+
+from .forms import (
+    AccountSettingsForm,
+    CommentForm,
+    ProfileForm,
+    ReportForm,
+    VideoEditForm,
+    VideoUploadForm,
+)
+from .models import AdminActionLog, Comment, Profile, Report, Video, VideoReaction
 
 
 def index(request):
@@ -79,9 +85,7 @@ def upload_video(request):
             video = form.save(commit=False)
             video.owner = request.user
             video.save()
-            return JsonResponse(
-                {'success': True, 'video_id': video.id}
-            )
+            return JsonResponse({'success': True, 'video_id': video.id})
         return JsonResponse(
             {'success': False, 'errors': form.errors}, status=400
         )
@@ -130,9 +134,8 @@ def video_detail(request, pk):
     video = get_object_or_404(
         Video.objects.select_related('owner')
         .prefetch_related('comments', 'reactions'),
-        pk=pk
+        pk=pk,
     )
-    # enforce private visibility
     if (
         video.visibility == Video.Visibility.PRIVATE
         and request.user != video.owner
@@ -155,16 +158,17 @@ def video_detail(request, pk):
             .first()
         )
 
-    # comments and comment form
     comments = video.comments.order_by('-created_at')[:100]
-    form = CommentForm()
+    comment_form = CommentForm()
+    report_form = ReportForm()
     return render(
         request,
         'core/video_detail.html',
         {
             'video': video,
             'comments': comments,
-            'comment_form': form,
+            'comment_form': comment_form,
+            'report_form': report_form,
             'like_count': reaction_counts['likes'],
             'dislike_count': reaction_counts['dislikes'],
             'user_reaction': user_reaction,
@@ -176,6 +180,12 @@ def video_detail(request, pk):
 @require_POST
 def post_comment(request, pk):
     video = get_object_or_404(Video, pk=pk)
+    if (
+        video.visibility == Video.Visibility.PRIVATE
+        and request.user != video.owner
+    ):
+        return HttpResponseForbidden()
+
     form = CommentForm(request.POST)
     if not form.is_valid():
         return JsonResponse(
@@ -253,3 +263,186 @@ def react_video(request, pk):
             'current': current,
         }
     )
+
+
+@login_required
+@require_POST
+def report_video(request, pk):
+    video = get_object_or_404(Video, pk=pk)
+    if video.owner == request.user:
+        return JsonResponse(
+            {
+                'success': False,
+                'errors': {'reason': ['You cannot report your own video.']},
+            },
+            status=400,
+        )
+
+    form = ReportForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(
+            {'success': False, 'errors': form.errors}, status=400
+        )
+
+    report = Report.objects.create(
+        reporter=request.user,
+        video=video,
+        reason=form.cleaned_data['reason'],
+    )
+    return JsonResponse({'success': True, 'report_id': report.id})
+
+
+@login_required
+def edit_profile(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated.')
+            return redirect('edit_profile')
+    else:
+        form = ProfileForm(instance=profile)
+    return render(
+        request,
+        'core/edit_profile.html',
+        {'form': form, 'profile_obj': profile},
+    )
+
+
+def profile_detail(request, username):
+    user_obj = get_object_or_404(get_user_model(), username=username)
+    profile, _ = Profile.objects.get_or_create(user=user_obj)
+    visible_videos = Video.objects.filter(owner=user_obj).order_by('-created_at')
+    if request.user != user_obj:
+        visible_videos = visible_videos.filter(
+            visibility=Video.Visibility.PUBLIC
+        )
+    return render(
+        request,
+        'core/profile_detail.html',
+        {
+            'profile_user': user_obj,
+            'profile_obj': profile,
+            'videos': visible_videos[:24],
+        },
+    )
+
+
+@login_required
+def account_settings(request):
+    if request.method == 'POST':
+        form = AccountSettingsForm(request.POST, user=request.user)
+        if form.is_valid():
+            request.user.email = form.cleaned_data['email']
+            new_password = form.cleaned_data.get('new_password')
+            if new_password:
+                request.user.set_password(new_password)
+            request.user.save()
+            if new_password:
+                update_session_auth_hash(request, request.user)
+            messages.success(request, 'Account settings updated.')
+            return redirect('account_settings')
+    else:
+        form = AccountSettingsForm(user=request.user)
+    return render(request, 'core/account_settings.html', {'form': form})
+
+
+def _is_staff_user(user):
+    return user.is_staff or user.is_superuser
+
+
+@user_passes_test(_is_staff_user)
+def admin_user_management(request):
+    query = request.GET.get('q', '').strip()
+    selected_id = request.GET.get('user_id', '').strip()
+    User = get_user_model()
+    users = User.objects.all().order_by('username')
+    if query:
+        users = users.filter(
+            Q(username__icontains=query) | Q(email__icontains=query)
+        )
+    users = users[:50]
+
+    selected_user = None
+    if selected_id:
+        selected_user = User.objects.filter(pk=selected_id).first()
+
+    return render(
+        request,
+        'core/admin_users.html',
+        {
+            'users': users,
+            'query': query,
+            'selected_user': selected_user,
+        },
+    )
+
+
+@user_passes_test(_is_staff_user)
+@require_POST
+def admin_delete_user(request, user_id):
+    User = get_user_model()
+    target = get_object_or_404(User, pk=user_id)
+    if target == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('admin_user_management')
+
+    AdminActionLog.objects.create(
+        admin_user=request.user,
+        action=AdminActionLog.Action.DELETE_USER,
+        target_user=target,
+        details={'username': target.username, 'email': target.email},
+    )
+    target.delete()
+    messages.success(request, 'User account permanently deleted.')
+    return redirect('admin_user_management')
+
+
+@user_passes_test(_is_staff_user)
+def admin_reports(request):
+    reports = (
+        Report.objects.select_related('reporter', 'video', 'resolved_by')
+        .order_by('-created_at')
+    )
+    return render(request, 'core/admin_reports.html', {'reports': reports})
+
+
+@user_passes_test(_is_staff_user)
+@require_POST
+def admin_resolve_report(request, report_id):
+    report = get_object_or_404(Report, pk=report_id)
+    if report.status != Report.Status.RESOLVED:
+        report.resolve(request.user)
+        AdminActionLog.objects.create(
+            admin_user=request.user,
+            action=AdminActionLog.Action.RESOLVE_REPORT,
+            target_report=report,
+            details={'report_id': report.id},
+        )
+    messages.success(request, 'Report marked as resolved.')
+    return redirect('admin_reports')
+
+
+@user_passes_test(_is_staff_user)
+@require_POST
+def admin_delete_reported_video(request, report_id):
+    report = get_object_or_404(Report.objects.select_related('video'), pk=report_id)
+    video = report.video
+    if not video:
+        messages.error(request, 'Video was already removed.')
+        return redirect('admin_reports')
+
+    AdminActionLog.objects.create(
+        admin_user=request.user,
+        action=AdminActionLog.Action.DELETE_VIDEO,
+        target_video=video,
+        target_report=report,
+        details={'video_id': video.id, 'title': video.title},
+    )
+    report.video = None
+    report.save(update_fields=['video'])
+    report.resolve(request.user)
+    video.delete()
+    messages.success(request, 'Reported video deleted and report resolved.')
+    return redirect('admin_reports')
