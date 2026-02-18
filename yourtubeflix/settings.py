@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,19 +22,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-uu%b=+cu=%@*a9^c&7mz%**%0ky4tr1sp7v-=^!s+%0i4$7y+$',
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'dev-insecure-change-me'
+    elif os.environ.get('DYNO'):
+        raise ImproperlyConfigured(
+            'DJANGO_SECRET_KEY must be set when running on Heroku.'
+        )
+    else:
+        SECRET_KEY = 'dev-insecure-change-me'
 
 ALLOWED_HOSTS = (
     os.environ.get(
         'ALLOWED_HOSTS',
-        'localhost,127.0.0.1,youtubeflix-8527d2e162cd.herokuapp.com',
+        'localhost,127.0.0.1',
     ).split(',')
 )
 
