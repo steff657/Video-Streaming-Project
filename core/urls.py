@@ -21,6 +21,11 @@ urlpatterns = [
         name='delete_comment',
     ),
     path(
+        'comment/<int:pk>/edit/',
+        views.edit_comment,
+        name='edit_comment',
+    ),
+    path(
         'staff/users/',
         views.admin_user_management,
         name='admin_user_management',

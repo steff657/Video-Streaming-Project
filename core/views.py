@@ -218,6 +218,30 @@ def delete_comment(request, pk):
 
 @login_required
 @require_POST
+def edit_comment(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    if comment.user != request.user or comment.is_deleted:
+        return HttpResponseForbidden()
+
+    form = CommentForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(
+            {'success': False, 'errors': form.errors}, status=400
+        )
+
+    comment.comment_text = form.cleaned_data['comment_text']
+    comment.save(update_fields=['comment_text'])
+
+    html = render_to_string(
+        'core/_comment.html', {'comment': comment, 'user': request.user}
+    )
+    return JsonResponse(
+        {'success': True, 'html': html, 'comment_id': comment.id}
+    )
+
+
+@login_required
+@require_POST
 def react_video(request, pk):
     video = get_object_or_404(Video, pk=pk)
     if (

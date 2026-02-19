@@ -176,6 +176,41 @@
   }
 
   document.addEventListener('click', function(e){
+    if (e.target && e.target.classList.contains('edit-comment-btn')){
+      const id = e.target.getAttribute('data-comment-id');
+      const currentText = e.target.getAttribute('data-comment-text') || '';
+      const nextText = window.prompt('Edit your comment:', currentText);
+      if (nextText === null) return;
+      if (!nextText.trim()) {
+        alert('Comment cannot be empty');
+        return;
+      }
+
+      fetch('{% url "edit_comment" 0 %}'.replace('/0/', '/' + id + '/'), {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: new URLSearchParams({comment_text: nextText.trim()})
+      }).then(r=>r.json()).then(resp=>{
+        if (resp.success){
+          const el = document.getElementById('comment-' + resp.comment_id);
+          if (!el) return;
+          const wrapper = document.createElement('div');
+          wrapper.innerHTML = resp.html;
+          const replacement = wrapper.firstElementChild;
+          if (replacement) {
+            el.replaceWith(replacement);
+          }
+        } else {
+          alert('Failed to update comment');
+        }
+      }).catch(()=>alert('Error updating comment'));
+      return;
+    }
+
     if (e.target && e.target.classList.contains('delete-comment-btn')){
       const id = e.target.getAttribute('data-comment-id');
       if (!confirm('Delete this comment?')) return;

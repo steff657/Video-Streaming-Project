@@ -15,6 +15,7 @@
       <p class="mb-2">{{ comment.comment_text|linebreaksbr }}</p>
     {% endif %}
     {% if user.is_authenticated and comment.user == user and not comment.is_deleted %}
+      <button class="btn btn-sm btn-link edit-comment-btn p-0 me-2" data-comment-id="{{ comment.id }}" data-comment-text="{{ comment.comment_text|escapejs }}">Edit</button>
       <button class="btn btn-sm btn-link text-danger delete-comment-btn p-0" data-comment-id="{{ comment.id }}">Delete</button>
     {% endif %}
   </div>
