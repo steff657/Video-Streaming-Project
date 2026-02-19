@@ -446,3 +446,7 @@ def admin_delete_reported_video(request, report_id):
     video.delete()
     messages.success(request, 'Reported video deleted and report resolved.')
     return redirect('admin_reports')
+
+
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
