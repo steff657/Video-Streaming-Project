@@ -1,4 +1,6 @@
 import os
+import secrets
+import sys
 """
 Django settings for yourtubeflix project.
 
@@ -21,14 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-uu%b=+cu=%@*a9^c&7mz%**%0ky4tr1sp7v-=^!s+%0i4$7y+$',
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+IS_TESTING = 'test' in sys.argv
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or secrets.token_urlsafe(64)
 
 ALLOWED_HOSTS = (
     os.environ.get(
@@ -41,6 +41,35 @@ USE_S3 = (
     os.environ.get('USE_S3', 'False') == 'True'
     or bool(os.environ.get('AWS_STORAGE_BUCKET_NAME'))
 )
+
+# Security hardening (sane defaults for production, overridable by env vars)
+SECURE_SSL_REDIRECT = os.environ.get(
+    'SECURE_SSL_REDIRECT', 'False' if (DEBUG or IS_TESTING) else 'True'
+) == 'True'
+SESSION_COOKIE_SECURE = os.environ.get(
+    'SESSION_COOKIE_SECURE', 'False' if (DEBUG or IS_TESTING) else 'True'
+) == 'True'
+CSRF_COOKIE_SECURE = os.environ.get(
+    'CSRF_COOKIE_SECURE', 'False' if (DEBUG or IS_TESTING) else 'True'
+) == 'True'
+SECURE_HSTS_SECONDS = int(
+    os.environ.get(
+        'SECURE_HSTS_SECONDS',
+        '0' if (DEBUG or IS_TESTING) else '31536000',
+    )
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get(
+    'SECURE_HSTS_INCLUDE_SUBDOMAINS',
+    'False' if (DEBUG or IS_TESTING) else 'True',
+) == 'True'
+SECURE_HSTS_PRELOAD = os.environ.get(
+    'SECURE_HSTS_PRELOAD', 'False' if (DEBUG or IS_TESTING) else 'True'
+) == 'True'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost:8000,http://127.0.0.1:8000',
+).split(',')
 
 
 # Application definition
