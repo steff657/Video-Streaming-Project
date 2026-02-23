@@ -190,3 +190,29 @@ class PlatformFeaturesTests(TestCase):
         output = StringIO()
         call_command('check_deploy_health', stdout=output)
         self.assertIn('Deployment health check passed', output.getvalue())
+
+    def test_guest_can_access_home_page(self):
+        response = self.client.get(reverse('index'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_guest_is_redirected_from_video_detail(self):
+        video = Video.objects.create(
+            owner=self.user,
+            title='Public Video',
+            visibility=Video.Visibility.PUBLIC,
+            video_file=self._fake_video(),
+        )
+        response = self.client.get(reverse('video_detail', args=[video.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('account_login'), response.url)
+
+    def test_guest_is_redirected_from_profile_and_search(self):
+        profile_response = self.client.get(
+            reverse('profile_detail', args=[self.user.username])
+        )
+        self.assertEqual(profile_response.status_code, 302)
+        self.assertIn(reverse('account_login'), profile_response.url)
+
+        search_response = self.client.get(reverse('search_videos'))
+        self.assertEqual(search_response.status_code, 302)
+        self.assertIn(reverse('account_login'), search_response.url)

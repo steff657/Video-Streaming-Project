@@ -43,6 +43,7 @@ def index(request):
     )
 
 
+@login_required
 def search_videos(request):
     query = request.GET.get('q', '').strip()
     queryset = Video.objects.select_related('owner')
@@ -130,6 +131,7 @@ def delete_video(request, pk):
     return render(request, 'core/delete_confirm.html', {'video': video})
 
 
+@login_required
 def video_detail(request, pk):
     video = get_object_or_404(
         Video.objects.select_related('owner')
@@ -334,6 +336,7 @@ def edit_profile(request):
     )
 
 
+@login_required
 def profile_detail(request, username):
     user_obj = get_object_or_404(get_user_model(), username=username)
     profile, _ = Profile.objects.get_or_create(user=user_obj)
