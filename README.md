@@ -1,6 +1,10 @@
 # YourTubeFlix - Video Streaming Platform
 
-A Django-based video streaming platform with user authentication, video uploads, comments, and reactions.
+YourTubeFlix is a full-stack Django video streaming platform where users can sign up, upload and manage videos, and engage with content through likes, dislikes, and comments. It supports practical creator controls like public/private/unlisted visibility, soft-delete for comments, and personal video management (edit/delete), while also including moderation-oriented features such as reporting and admin review workflows. The site is built with a responsive Bootstrap 5 interface, uses django-allauth for authentication, supports ffmpeg-powered media handling, and is structured for both local development and production deployment with PostgreSQL/S3-ready configuration.A Django-based video streaming platform with user authentication, video uploads, comments, and reactions.
+
+YourTubeFlix was created as part of a Capstone project for a Code Institute bootcamp.
+
+The deployed website can be found here:- [](https://yourtubeflix-b9bff9094aa7.herokuapp.com/)
 
 ## Features
 
@@ -159,7 +163,7 @@ DJANGO_SECRET_KEY=your-key-here    # Generate a secure key
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 
-MAX_UPLOAD_SIZE=209715200          # 200 MB in bytes
+MAX_UPLOAD_SIZE=209715200
 ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv
 ```
 
@@ -267,24 +271,24 @@ Project planning and progress tracking were managed in an Agile board
 
 ### Core and Account Screens
 
-![Home Search Wireframe](wireframes/Home _ Search - Wireframe.png)
-![Video Detail Wireframe](wireframes/Video Detail - Wireframe.png)
-![Upload Video Wireframe](wireframes/Upload Video - Wireframe.png)
-![My Videos Wireframe](wireframes/My Videos - Wireframe.png)
-![Edit Video Wireframe](wireframes/Edit Video - Wireframe.png)
-![Delete Video Wireframe](wireframes/Delete Video - Wireframe.png)
-![Profile Detail Wireframe](wireframes/Profile Detail - Wireframe.png)
-![Edit Profile Wireframe](wireframes/Edit Profile - Wireframe.png)
-![Account Settings Wireframe](wireframes/Account Settings - Wireframe.png)
-![Login Wireframe](wireframes/Login - Wireframe.png)
-![Sign Up Wireframe](wireframes/Sign Up - Wireframe.png)
-![Logout Wireframe](wireframes/Logout - Wireframe.png)
+![Home Search Wireframe](wireframes/Home%20_%20Search%20-%20Wireframe.png)
+![Video Detail Wireframe](wireframes/Video%20Detail%20-%20Wireframe.png)
+![Upload Video Wireframe](wireframes/Upload%20Video%20-%20Wireframe.png)
+![My Videos Wireframe](wireframes/My%20Videos%20-%20Wireframe.png)
+![Edit Video Wireframe](wireframes/Edit%20Video%20-%20Wireframe.png)
+![Delete Video Wireframe](wireframes/Delete%20Video%20-%20Wireframe.png)
+![Profile Detail Wireframe](wireframes/Profile%20Detail%20-%20Wireframe.png)
+![Edit Profile Wireframe](wireframes/Edit%20Profile%20-%20Wireframe.png)
+![Account Settings Wireframe](wireframes/Account%20Settings%20-%20Wireframe.png)
+![Login Wireframe](wireframes/Login%20-%20Wireframe.png)
+![Sign Up Wireframe](wireframes/Sign%20Up%20-%20Wireframe.png)
+![Logout Wireframe](wireframes/Logout%20-%20Wireframe.png)
 
 ### Admin and Error Screens
 
-![Admin Users Wireframe](wireframes/Admin Users - Wireframe.png)
-![Admin Reports Wireframe](wireframes/Admin Reports - Wireframe.png)
-![Not Allowed 403 Wireframe](wireframes/Not Allowed (403) - Wireframe.png)
+![Admin Users Wireframe](wireframes/Admin%20Users%20-%20Wireframe.png)
+![Admin Reports Wireframe](wireframes/Admin%20Reports%20-%20Wireframe.png)
+![Not Allowed 403 Wireframe](wireframes/Not%20Allowed%20%28403%29%20-%20Wireframe.png)
 ![404 Wireframe](wireframes/404-wireframe.png)
 
 ## Lighthouse Testing Snapshot
