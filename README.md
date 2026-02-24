@@ -16,19 +16,21 @@ A Django-based video streaming platform with user authentication, video uploads,
 
 - **Backend:** Django 6.0.2
 - **Frontend:** Bootstrap 5, HTMX
-- **Database:** SQLite (development), PostgreSQL (recommended for production)
+- **Database:** SQLite, PostgreSQL
 - **Authentication:** django-allauth
-- **Video Processing:** ffmpeg (optional, for thumbnail generation)
+- **Video Processing:** ffmpeg
 
 ## Installation
 
 ### 1. Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/Video-Streaming-Project.git
 cd Video-Streaming-Project
 ```
 
 ### 2. Create a virtual environment
+
 ```bash
 python -m venv venv
 # On Windows
@@ -38,11 +40,13 @@ source venv/bin/activate
 ```
 
 ### 3. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Setup environment variables
+
 ```bash
 # Copy the example env file
 cp .env.example .env
@@ -52,16 +56,19 @@ cp .env.example .env
 ```
 
 ### 5. Run migrations
+
 ```bash
 python manage.py migrate
 ```
 
 ### 6. Create a superuser (admin account)
+
 ```bash
 python manage.py createsuperuser
 ```
 
 ### 7. Run the development server
+
 ```bash
 python manage.py runserver
 ```
@@ -95,6 +102,7 @@ Video-Streaming-Project/
 ## Models
 
 ### Video
+
 - `owner` - ForeignKey to User
 - `title` - Video title
 - `description` - Video description
@@ -105,6 +113,7 @@ Video-Streaming-Project/
 - `created_at` - Creation timestamp
 
 ### Comment
+
 - `video` - ForeignKey to Video
 - `user` - ForeignKey to User
 - `comment_text` - Comment content
@@ -112,7 +121,8 @@ Video-Streaming-Project/
 - `is_deleted` - Soft delete flag
 - `deleted_at` - Deletion timestamp
 
-### VideoReaction
+### Video Reaction
+
 - `video` - ForeignKey to Video
 - `user` - ForeignKey to User
 - `value` - Like or Dislike
@@ -121,11 +131,13 @@ Video-Streaming-Project/
 ## API Endpoints
 
 ### Public
+
 - `GET /` - Homepage
 - `GET /video/<id>/` - View video detail
 - `GET /accounts/` - Authentication pages
 
 ### Authenticated User
+
 - `GET /upload/` - Upload page
 - `POST /upload/` - Submit video upload
 - `GET /my-videos/` - List user's videos
@@ -154,6 +166,7 @@ ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv
 ## Production Deployment
 
 ### Important Security Changes:
+
 1. Set `DEBUG=False` in `.env`
 2. Generate a secure `DJANGO_SECRET_KEY`
 3. Set `ALLOWED_HOSTS` to your domain
@@ -165,6 +178,7 @@ ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv
 9. Use object storage for uploaded media files (Heroku disk is ephemeral)
 
 ### Deployment Example (Gunicorn + Nginx):
+
 ```bash
 # Install production dependencies
 pip install gunicorn whitenoise
@@ -174,6 +188,7 @@ gunicorn yourtubeflix.wsgi:application --bind 0.0.0.0:8000
 ```
 
 ### Heroku Media Storage (S3)
+
 Set these config vars in Heroku:
 
 ```bash
@@ -181,12 +196,13 @@ heroku config:set USE_S3=True
 heroku config:set AWS_ACCESS_KEY_ID=...
 heroku config:set AWS_SECRET_ACCESS_KEY=...
 heroku config:set AWS_STORAGE_BUCKET_NAME=...
-heroku config:set AWS_S3_REGION_NAME=us-east-1
+heroku config:set AWS_S3_REGION_NAME="your region"
 ```
 
 Without external storage, uploaded files can disappear after dyno restart.
 
 ### Post-Deploy Health Check
+
 Run this command after deployment to verify there are no pending migrations
 and critical tables (`core_profile`, `core_video`, `core_report`) exist:
 
@@ -200,6 +216,143 @@ On Heroku:
 heroku run python manage.py check_deploy_health --app your-app-name
 ```
 
+## Agile Methodology and User Stories
+
+Project planning and progress tracking were managed in an Agile board
+(Kanban style) using backlog, in-progress, review, and done columns.
+
+### User stories implemented
+
+1. As a visitor, I can browse recent public videos so I can discover content.
+2. As a user, I can register and log in so I can upload and manage videos.
+3. As a user, I can upload a video with title, description, tags, and
+   visibility so I can share content.
+4. As a user, I can edit or delete my own videos so I can keep my content
+   up to date.
+5. As a user, I can react to and comment on videos so I can engage with
+   content.
+6. As a user, I can edit/delete my own comments so I can correct mistakes.
+7. As a user, I can update profile/account settings so I can manage identity
+   and credentials.
+8. As a user, I can report inappropriate videos so moderators can review them.
+9. As an admin/staff user, I can review reports and remove violating content.
+10. As an admin/staff user, I can remove abusive accounts and keep an audit
+    log of admin actions.
+
+## UX Process and Artifacts
+
+### Design approach
+
+- Mobile-first layout with progressive enhancement for desktop.
+- Clear information hierarchy: top navigation, searchable content grid,
+  focused video detail page, and task-oriented forms.
+- Consistent visual language based on Bootstrap plus custom site styles.
+
+### Key UX decisions
+
+- Added persistent login-state controls in the header/sidebar so users can
+  always see account status and available actions.
+- Prioritized discoverability with search and "Recently Uploaded" defaults.
+- Reduced form friction with inline validation and clear field labels.
+- Used responsive Grid/Flex patterns to keep layout functional on small screens.
+
+### Accessibility notes
+
+- Semantic page regions are used (`header`, `main`, article cards, form labels).
+- Alternative text is provided for rendered profile/video images.
+- Focus and input states are styled for keyboard users.
+- Color palette aims for readable contrast in primary workflows.
+
+## Wireframes
+
+### Core and Account Screens
+
+![Home Search Wireframe](wireframes/Home _ Search - Wireframe.png)
+![Video Detail Wireframe](wireframes/Video Detail - Wireframe.png)
+![Upload Video Wireframe](wireframes/Upload Video - Wireframe.png)
+![My Videos Wireframe](wireframes/My Videos - Wireframe.png)
+![Edit Video Wireframe](wireframes/Edit Video - Wireframe.png)
+![Delete Video Wireframe](wireframes/Delete Video - Wireframe.png)
+![Profile Detail Wireframe](wireframes/Profile Detail - Wireframe.png)
+![Edit Profile Wireframe](wireframes/Edit Profile - Wireframe.png)
+![Account Settings Wireframe](wireframes/Account Settings - Wireframe.png)
+![Login Wireframe](wireframes/Login - Wireframe.png)
+![Sign Up Wireframe](wireframes/Sign Up - Wireframe.png)
+![Logout Wireframe](wireframes/Logout - Wireframe.png)
+
+### Admin and Error Screens
+
+![Admin Users Wireframe](wireframes/Admin Users - Wireframe.png)
+![Admin Reports Wireframe](wireframes/Admin Reports - Wireframe.png)
+![Not Allowed 403 Wireframe](wireframes/Not Allowed (403) - Wireframe.png)
+![404 Wireframe](wireframes/404-wireframe.png)
+
+## Lighthouse Testing Snapshot
+
+### Home Page Lighthouse Report Screenshot
+
+![Lighthouse Home Report Screenshot](testing/lighthouse/home.report.screenshot.png)
+
+## Testing Documentation
+
+### Test strategy
+
+- Automated Django tests cover critical backend workflows:
+  - Upload validation
+  - Comment validation
+  - Profile/account updates
+  - Reporting/moderation
+  - Guest access restrictions
+  - Deployment health command
+- Manual checks were used for responsive behavior and interaction flows in
+  the browser (upload progress, reactions, comments, admin actions).
+
+### Automated test execution
+
+```bash
+python manage.py test
+```
+
+Latest local run result:
+
+- 13 tests executed
+- 13 passed
+- 0 failed
+
+### Deployment/security checks
+
+```bash
+python manage.py check --deploy
+python manage.py check_deploy_health
+```
+
+## AI Usage Reflection
+
+AI tooling was used as an engineering assistant for targeted implementation
+and review tasks.
+
+### Code creation
+
+- Helped draft and refine CRUD-related view/form patterns and template logic.
+- Assisted with structuring model constraints and validation flows.
+
+### Debugging
+
+- Helped identify edge cases in upload handling, auth flows, and moderation
+  paths by suggesting focused checks.
+
+### Performance and UX optimization
+
+- Suggested improvements to reduce repeated work (query filtering patterns,
+  concise view responses, and lightweight front-end updates).
+- Supported responsive UI refinements and clearer feedback messaging.
+
+### Workflow impact
+
+- Improved development speed for repetitive scaffolding tasks.
+- Kept focus on outcome quality by accelerating iteration and review.
+- Final implementation and validation decisions were kept developer-led.
+
 ## Requirements for Features
 
 - **FFmpeg/FFprobe:** Install for automatic thumbnail generation and resolution validation
@@ -212,16 +365,19 @@ heroku run python manage.py check_deploy_health --app your-app-name
 ## Troubleshooting
 
 ### Database errors
+
 ```bash
 python manage.py migrate --run-syncdb
 ```
 
 ### Static files not loading
+
 ```bash
 python manage.py collectstatic
 ```
 
 ### FFmpeg/FFprobe not found
+
 - Ensure `ffmpeg` and `ffprobe` are installed and in your PATH
 - Thumbnails are generated with ffmpeg if available
 - Resolution validation is enforced with ffprobe if available
