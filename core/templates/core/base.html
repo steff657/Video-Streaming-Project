@@ -16,11 +16,17 @@
 <body>
   <header class="yt-topbar">
     <div class="yt-topbar-left">
-      {% if user.is_authenticated %}
-        <a class="yt-icon-btn yt-mobile-menu-btn d-lg-none" href="{% url 'my_videos' %}" aria-label="Open navigation (My Videos)" title="Open navigation">
+        <button
+          class="yt-icon-btn yt-mobile-menu-btn d-lg-none"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#yt-mobile-nav"
+          aria-controls="yt-mobile-nav"
+          aria-label="Open navigation menu"
+          title="Open navigation"
+        >
           <i class="fa-solid fa-bars"></i>
-        </a>
-      {% endif %}
+        </button>
       <a class="yt-brand" href="{% url 'index' %}">
         <i class="fa-solid fa-play"></i>
         <span>YourTubeFlix</span>
@@ -68,6 +74,31 @@
       {% endif %}
     </div>
   </header>
+  <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="yt-mobile-nav" aria-labelledby="yt-mobile-nav-label">
+    <div class="offcanvas-header border-bottom">
+      <h2 class="offcanvas-title h5 mb-0" id="yt-mobile-nav-label">Menu</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close menu"></button>
+    </div>
+    <div class="offcanvas-body px-2">
+      <nav class="d-flex flex-column gap-1">
+        <a href="{% url 'index' %}" class="yt-side-link"><i class="fa-solid fa-house"></i> Home</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'upload_video' %}" class="yt-side-link"><i class="fa-solid fa-upload"></i> Upload</a>
+          <a href="{% url 'my_videos' %}" class="yt-side-link"><i class="fa-solid fa-photo-film"></i> My Videos</a>
+          <a href="{% url 'edit_profile' %}" class="yt-side-link"><i class="fa-solid fa-user-pen"></i> Edit Profile</a>
+          <a href="{% url 'account_settings' %}" class="yt-side-link"><i class="fa-solid fa-lock"></i> Account Settings</a>
+          {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'admin_user_management' %}" class="yt-side-link"><i class="fa-solid fa-users-gear"></i> Manage Users</a>
+            <a href="{% url 'admin_reports' %}" class="yt-side-link"><i class="fa-solid fa-flag"></i> Reports</a>
+          {% endif %}
+          <a href="{% url 'account_logout' %}" class="yt-side-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="yt-side-link"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+          <a href="{% url 'account_signup' %}" class="yt-side-link"><i class="fa-solid fa-user-plus"></i> Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
   <div class="app-layout">
     <aside class="yt-sidebar d-none d-lg-flex">
       <a href="{% url 'index' %}" class="yt-side-link"><i class="fa-solid fa-house"></i> Home</a>
