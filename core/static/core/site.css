@@ -504,6 +504,55 @@ form select:focus,
   text-decoration: underline;
 }
 
+.yt-footer {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--yt-border);
+  background: var(--yt-surface);
+}
+
+.yt-footer-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.1rem 1rem 1.2rem;
+}
+
+.yt-footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.yt-footer-label {
+  font-size: 0.9rem;
+  color: var(--yt-muted);
+  font-weight: 500;
+}
+
+.yt-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+}
+
+.yt-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #303030;
+  font-size: 0.9rem;
+}
+
+.yt-footer-links a:hover {
+  color: var(--yt-accent-dark);
+}
+
+.yt-footer-copy {
+  margin: 0.8rem 0 0;
+  color: var(--yt-muted);
+  font-size: 0.85rem;
+}
+
 @media (max-width: 992px) {
   .yt-topbar {
     padding: 0 0.7rem;
@@ -551,5 +600,9 @@ form select:focus,
 
   .yt-video-grid {
     grid-template-columns: 1fr;
+  }
+
+  .yt-footer-inner {
+    padding: 1rem 0.8rem 1.1rem;
   }
 }
