@@ -17,7 +17,7 @@
   <header class="yt-topbar">
     <div class="yt-topbar-left">
       {% if user.is_authenticated %}
-        <a class="yt-icon-btn yt-mobile-menu-btn d-lg-none" href="{% url 'my_videos' %}" aria-label="Open navigation (My Videos)" title="Open navigation">
+        <a class="yt-icon-btn d-lg-none" href="{% url 'my_videos' %}" aria-label="My Videos">
           <i class="fa-solid fa-bars"></i>
         </a>
       {% endif %}
