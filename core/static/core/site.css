@@ -115,10 +115,16 @@ a:hover {
   align-items: center;
   justify-content: center;
   color: #303030;
+  touch-action: manipulation;
 }
 
 .yt-icon-btn:hover {
   background: #f2f2f2;
+}
+
+.yt-icon-btn:focus-visible {
+  outline: 2px solid #1c62b9;
+  outline-offset: 2px;
 }
 
 .yt-user-pill {
@@ -567,10 +573,21 @@ form select:focus,
 
 @media (max-width: 768px) {
   .yt-topbar {
+    height: 64px;
+    padding-left: calc(0.7rem + env(safe-area-inset-left));
+    padding-right: calc(0.7rem + env(safe-area-inset-right));
     gap: 0.5rem;
   }
 
-  .yt-brand span,
+  .yt-icon-btn {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .yt-mobile-menu-btn {
+    font-size: 1.1rem;
+  }
+
   .yt-user-pill {
     display: none;
   }
@@ -589,7 +606,13 @@ form select:focus,
   }
 
   .yt-topbar-right .btn {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.85rem;
+    line-height: 1;
   }
 
   .hero {
@@ -606,5 +629,11 @@ form select:focus,
 
   .yt-footer-inner {
     padding: 1rem 0.8rem 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .yt-brand span {
+    display: none;
   }
 }
