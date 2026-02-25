@@ -106,9 +106,14 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.FrameAncestorsCspMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+EMBED_ALLOWED_ORIGINS = os.environ.get(
+    'EMBED_ALLOWED_ORIGINS',
+    'https://fireship.dev',
+).split(',')
 
 ROOT_URLCONF = 'yourtubeflix.urls'
 

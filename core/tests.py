@@ -216,3 +216,13 @@ class PlatformFeaturesTests(TestCase):
         search_response = self.client.get(reverse('search_videos'))
         self.assertEqual(search_response.status_code, 302)
         self.assertIn(reverse('account_login'), search_response.url)
+
+    @override_settings(EMBED_ALLOWED_ORIGINS=['https://fireship.dev'])
+    def test_csp_frame_ancestors_allows_only_self_and_fireship(self):
+        response = self.client.get(reverse('index'))
+        csp = response.get('Content-Security-Policy', '')
+        self.assertIn("frame-ancestors 'self' https://fireship.dev", csp)
+
+    def test_x_frame_options_header_not_set(self):
+        response = self.client.get(reverse('index'))
+        self.assertNotIn('X-Frame-Options', response.headers)
