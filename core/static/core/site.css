@@ -514,13 +514,14 @@ form select:focus,
   max-width: 1240px;
   margin: 0 auto;
   padding: 1.1rem 1rem 1.2rem;
+  text-align: center;
 }
 
 .yt-footer-social {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  gap: 0.75rem 1rem;
+  gap: 0.55rem;
 }
 
 .yt-footer-label {
@@ -532,6 +533,7 @@ form select:focus,
 .yt-footer-links {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.4rem 0.9rem;
 }
 
