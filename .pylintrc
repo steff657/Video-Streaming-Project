@@ -1,0 +1,25 @@
+[MAIN]
+load-plugins = pylint_django
+django-settings-module = yourtubeflix.settings
+ignore-paths = .*[\\/]migrations[\\/].*
+
+[MESSAGES CONTROL]
+disable =
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    wrong-import-order,
+    broad-exception-caught,
+    duplicate-code,
+    trailing-newlines,
+    mixed-line-endings
+
+[BASIC]
+good-names = i,j,k,ex,Run,_,pk,qs,User,handler404
+
+[VARIABLES]
+ignored-argument-names = _.*|^args$|^kwargs$|^exception$
+
+[TYPECHECK]
+generated-members = objects,DoesNotExist,MultipleObjectsReturned,id,pk,path,url,save,username,video_id,reporter_id,admin_user_id,SUCCESS
