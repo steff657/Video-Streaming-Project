@@ -2,9 +2,33 @@
 
 YourTubeFlix is a full-stack Django video streaming platform where users can sign up, upload and manage videos, and engage with content through likes, dislikes, and comments. It supports practical creator controls like public/private/unlisted visibility, soft-delete for comments, and personal video management (edit/delete), while also including moderation-oriented features such as reporting and admin review workflows. The site is built with a responsive Bootstrap 5 interface, uses django-allauth for authentication, supports ffmpeg-powered media handling, and is structured for both local development and production deployment with PostgreSQL/S3-ready configuration.
 
-YourTubeFlix was created as part of a Capstone project for a Code Institute bootcamp.
+YourTubeFlix was created as part of a capstone project for a Code Institute bootcamp.
 
 The deployed website can be found here: [YourTubeFlix on Heroku](https://yourtubeflix-b9bff9094aa7.herokuapp.com/)
+
+## Contents
+
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Models](#models)
+- [Database Schema](#database-schema)
+- [API Endpoints](#api-endpoints)
+- [Configuration](#configuration)
+- [Production Deployment](#production-deployment)
+- [Agile Methodology and User Stories](#agile-methodology-and-user-stories)
+- [UX Process](#ux-process)
+- [Wireframes](#wireframes)
+- [Lighthouse Testing Snapshot](#lighthouse-testing-snapshot)
+- [Testing Documentation](#testing-documentation)
+- [AI Usage Reflection](#ai-usage-reflection)
+- [Requirements for Features](#requirements-for-features)
+- [Troubleshooting](#troubleshooting)
+- [Credits](#credits)
+- [Content](#content)
+- [Media](#media)
+- [Bugs and Fixes](#bugs-and-fixes)
 
 ## Features
 
@@ -18,11 +42,13 @@ The deployed website can be found here: [YourTubeFlix on Heroku](https://yourtub
 
 ## Technology Stack
 
-- **Backend:** Django 6.0.2
-- **Frontend:** Bootstrap 5, HTMX
-- **Database:** SQLite, PostgreSQL
-- **Authentication:** django-allauth
-- **Video Processing:** ffmpeg
+- **Language:** Python 3.12.8
+- **Backend:** Django 6.0.2, Django REST Framework
+- **Frontend:** Bootstrap 5, HTMX, Font Awesome
+- **Database:** SQLite (development), PostgreSQL (production), `psycopg2-binary`
+- **Authentication:** `django-allauth`
+- **Storage and Media:** `django-storages`, `boto3`, Pillow, FFmpeg/FFprobe
+- **Deployment:** Heroku, Gunicorn, WhiteNoise
 
 ## Installation
 
@@ -49,7 +75,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Setup environment variables
+### 4. Set up environment variables
 
 ```bash
 # Copy the example env file
@@ -191,31 +217,50 @@ ALLOWED_VIDEO_EXTENSIONS=mp4,mov,webm,mkv,m4v,avi,wmv,flv,mpg,mpeg,3gp,ogv,ts,m2
 
 ## Production Deployment
 
-### Important Security Changes:
+### Heroku Deployment Steps Used
 
-1. Set `DEBUG=False` in `.env`
-2. Generate a secure `DJANGO_SECRET_KEY`
-3. Set `ALLOWED_HOSTS` to your domain
-4. Use PostgreSQL or another production database
-5. Configure email backend for password resets
-6. Use a production WSGI server (Gunicorn)
-7. Configure HTTPS with SSL/TLS
-8. Use environment variables for sensitive data
-9. Use object storage for uploaded media files (Heroku disk is ephemeral)
-
-### Deployment Example (Gunicorn + Nginx):
+1. Created and configured the Heroku app:
+   - `yourtubeflix-b9bff9094aa7`
+2. Set required Heroku Config Vars from `.env.example`:
+   - `DJANGO_SECRET_KEY`
+   - `DEBUG=False`
+   - `ALLOWED_HOSTS`
+   - `CSRF_TRUSTED_ORIGINS`
+   - `DATABASE_URL` (PostgreSQL in production)
+3. Confirmed Python runtime in `runtime.txt`:
+   - `python-3.12.8`
+4. Confirmed process types in `Procfile`:
+   - `release: python manage.py migrate --noinput`
+   - `web: gunicorn yourtubeflix.wsgi --log-file -`
+5. Confirmed dependencies in `requirements.txt` for build/install.
+6. Enabled FFmpeg support for video processing using:
+   - `Aptfile` with `ffmpeg`
+   - Heroku apt buildpack (`heroku-community/apt`) before the Python buildpack
+7. Triggered deployment from the main branch.
+8. Verified successful release-phase migration and web dyno startup in Heroku logs.
+9. Ran deployment validation checks:
 
 ```bash
-# Install production dependencies
-pip install gunicorn whitenoise
-
-# Run with Gunicorn
-gunicorn yourtubeflix.wsgi:application --bind 0.0.0.0:8000
+python manage.py check --deploy
+python manage.py check_deploy_health
 ```
+
+On Heroku:
+
+```bash
+heroku run python manage.py check_deploy_health --app yourtubeflix-b9bff9094aa7
+```
+
+10. Verified live app behaviour after deploy:
+    - Signup/login
+    - Video upload
+    - Video playback and reactions/comments
+    - Admin report workflow
 
 ### Heroku Media Storage (S3)
 
-Set these config vars in Heroku:
+Uploaded media should use external object storage on Heroku, since dyno disk
+is ephemeral and can be reset.
 
 ```bash
 heroku config:set USE_S3=True
@@ -223,23 +268,6 @@ heroku config:set AWS_ACCESS_KEY_ID=...
 heroku config:set AWS_SECRET_ACCESS_KEY=...
 heroku config:set AWS_STORAGE_BUCKET_NAME=...
 heroku config:set AWS_S3_REGION_NAME="your region"
-```
-
-Without external storage, uploaded files can disappear after dyno restart.
-
-### Post-Deploy Health Check
-
-Run this command after deployment to verify there are no pending migrations
-and critical tables (`core_profile`, `core_video`, `core_report`) exist:
-
-```bash
-python manage.py check_deploy_health
-```
-
-On Heroku:
-
-```bash
-heroku run python manage.py check_deploy_health --app your-app-name
 ```
 
 ## Agile Methodology and User Stories
@@ -266,7 +294,7 @@ All must-have user stories were implemented. One minor issue remains in the back
 
 - Added persistent login-state controls in the header/sidebar so users can
   always see account status and available actions.
-- Prioritized discoverability with search and "Recently Uploaded" defaults.
+- Prioritised discoverability with search and "Recently Uploaded" defaults.
 - Reduced form friction with inline validation and clear field labels.
 - Used responsive Grid/Flex patterns to keep layout functional on small screens.
 
@@ -275,7 +303,7 @@ All must-have user stories were implemented. One minor issue remains in the back
 - Semantic page regions are used (`header`, `main`, article cards, form labels).
 - Alternative text is provided for rendered profile/video images.
 - Focus and input states are styled for keyboard users.
-- Color palette aims for readable contrast in primary workflows.
+- Colour palette aims for readable contrast in primary workflows.
 
 ## Wireframes
 
@@ -303,15 +331,19 @@ All must-have user stories were implemented. One minor issue remains in the back
 
 ## Lighthouse Testing Snapshot
 
-### Home Page Lighthouse Report Screenshot
+### Mobile Lighthouse Report
 
-![Lighthouse Home Report Screenshot](testing/lighthouse/home.report.screenshot.png)
+![Lighthouse Mobile Report Screenshot](testing/lighthouse/lighthouse-mobile-testing.png)
+
+### Desktop Lighthouse Report
+
+![Lighthouse Desktop Report Screenshot](testing/lighthouse/lighthouse-desktop-testing.png)
 
 ## Testing Documentation
 
 ### Test strategy
 
-- Automated Django test coverage focuses on critical backend behavior:
+- Automated Django test coverage focuses on critical backend behaviour:
   - Upload and media validation
   - Comment and interaction workflows
   - Profile and account update flows
@@ -319,8 +351,61 @@ All must-have user stories were implemented. One minor issue remains in the back
   - Guest access restrictions
   - Deployment health command execution
 - Manual testing was performed to validate real user journeys, responsive
-  rendering, and browser-level interaction behavior (navigation, uploads,
+  rendering, and browser-level interaction behaviour (navigation, uploads,
   reactions, comments, and admin workflows).
+
+### Files validated
+
+The following project files were included in validation checks.
+
+#### HTML files validated (W3C HTML Validator)
+
+- `core/templates/404.html`
+- `core/templates/core/base.html`
+- `core/templates/core/index.html`
+- `core/templates/core/video_detail.html`
+- `core/templates/core/upload.html`
+- `core/templates/core/my_videos.html`
+- `core/templates/core/edit_video.html`
+- `core/templates/core/delete_confirm.html`
+- `core/templates/core/profile_detail.html`
+- `core/templates/core/edit_profile.html`
+- `core/templates/core/account_settings.html`
+- `core/templates/core/admin_reports.html`
+- `core/templates/core/admin_users.html`
+- `core/templates/core/not_allowed.html`
+- `core/templates/core/_video_grid.html`
+- `core/templates/core/_comment.html`
+- `html_templates/account/login.html`
+- `html_templates/account/logout.html`
+- `html_templates/account/signup.html`
+
+Evidence:
+
+![](testing/html%20code%20test%20results/HTML-W3-results.png)
+
+#### Python files validated (Pylint/static checks)
+
+- `manage.py`
+- `core/admin.py`
+- `core/apps.py`
+- `core/forms.py`
+- `core/middleware.py`
+- `core/models.py`
+- `core/tests.py`
+- `core/urls.py`
+- `core/video_processing.py`
+- `core/views.py`
+- `core/allauth_ext/adapter.py`
+- `core/management/commands/check_deploy_health.py`
+- `yourtubeflix/settings.py`
+- `yourtubeflix/urls.py`
+- `yourtubeflix/asgi.py`
+- `yourtubeflix/wsgi.py`
+
+Evidence:
+
+![](testing/python%20code%20test%20results/CI-python-results.png)
 
 ### Manual testing
 
@@ -363,23 +448,67 @@ were reviewed during testing.
 This result captures the CSS validation/linting output used to verify style
 consistency, rule correctness, and general maintainability of the stylesheet.
 
-All warnings were minor (for example, color-contrast suggestions) or generated by vendor extensions. None of the reported issues affected the website functionality.
+All warnings were minor (for example, colour-contrast suggestions) or generated by vendor extensions. None of the reported issues affected the website functionality.
 
 ![CSS Test Results Screenshot](testing/css%20code%20test%20results/CSS%20test%20results.png)
 
 ###### HTML Code Test Results
 
-This result captures the HTML validation output used to confirm structural
-correctness, semantic markup quality, and absence of critical document errors.
+This validation run was executed against the listed template files using the
+W3C Nu Validator API.
 
-![HTML Test Results Screenshot](testing/html%20code%20test%20results/HTML%20test%20results.png)
+Validation run details:
+
+- Tool: W3C Nu Validator API (`https://validator.w3.org/nu/?out=json`)
+- Files checked: 19 template files
+- Aggregate output: 92 errors, 22 warnings
+
+Important context:
+
+- These checks were run against raw Django template files.
+- Django template tokens such as `{% ... %}` and `{{ ... }}` are not standard
+  HTML and produce parser errors in W3C output (for example, invalid `href`
+  values containing template tags).
+
+Evidence screenshot:
+
+![W3C HTML Validation Results Screenshot](testing/html%20code%20test%20results/w3c-html-validation-results.png)
+
+Rendered HTML pass:
+
+- Render source: Django test client requests to route outputs (`https://localhost`)
+- Validator endpoints attempted:
+  - `https://html5.validator.nu/?out=json`
+  - `https://validator.w3.org/nu/?out=json`
+- Files/routes validated: all 19 listed templates
+- Aggregate output: 0 errors, 0 warnings
+
+Rendered-pass evidence screenshot:
+
+![W3C Rendered HTML Validation Results Screenshot](testing/html%20code%20test%20results/HTML-W3-results.png)
+
+Validation interpretation note:
+
+- Raw validation of Django template source files can report false positives
+  (for example, `Bad value {% url ... %}`, missing doctype, or invalid
+  attribute tokens) because template tags are server-side syntax rather than
+  final browser HTML.
+- For this reason, the rendered-route validation pass is the authoritative
+  HTML result for this project.
 
 ###### Python Code Test Results
 
-This screenshot captures the PYLint output used to check code quality,
-style compliance, and potential static issues in backend modules.
+This validation run was executed against the listed Python files using Pylint.
 
-![Python Lint Results Screenshot](testing/python%20code%20test%20results/lint-results-current-screenshot.png)
+Validation run details:
+
+- Tool: `pylint 4.0.5`
+- Files checked: 16 Python files
+- Aggregate output: 0 issues reported
+
+Evidence screenshot:
+
+![Pylint Validation Results Screenshot](testing/python%20code%20test%20results/pylint-validation-results.png)
 
 ##### User and Account Flows
 
@@ -400,7 +529,7 @@ and viewing existing public content.
 ![Create User Account Success Screenshot](testing/screenshots/Create%20user%20account%20success.png)
 
 Account Settings was tested to ensure users can safely update credentials such
-as email address and password, with expected confirmation and validation behavior.
+as email address and password, with expected confirmation and validation behaviour.
 ![Account Settings Screenshot](testing/screenshots/Account%20Settings.png)
 
 Edit Profile was validated for profile image upload, display name updates, and
@@ -411,12 +540,12 @@ profile views.
 ##### Video Workflows
 
 This section covers the creator lifecycle from content management to playback
-interaction. Tests focused on CRUD behavior, media validation, and user-facing
+interaction. Tests focused on CRUD behaviour, media validation, and user-facing
 engagement actions.
 
 ![My Videos Screenshot](testing/screenshots/My%20Videos.png)
 
-Upload workflow testing confirmed form handling, media processing behavior, and
+Upload workflow testing confirmed form handling, media processing behaviour, and
 storage integration. Validation checks for file integrity, size, and resolution
 were also exercised to confirm robust failure handling.
 ![Upload Video Screenshot](testing/screenshots/Upload%20Video.png)
@@ -455,7 +584,7 @@ required, remove user accounts in accordance with platform moderation policy.
 
 ##### Responsive Testing
 
-Responsive behavior was tested across common viewport ranges (mobile, tablet,
+Responsive behaviour was tested across common viewport ranges (mobile, tablet,
 and desktop) to confirm layout stability, readable typography, accessible
 navigation, and functional form controls under different screen constraints.
 
@@ -491,6 +620,10 @@ Latest execution result:
 - 15 passed
 - 0 failed
 
+Terminal evidence screenshot:
+
+- ![Django test](testing/python%20code%20test%20results/django-test-run-terminal.png)
+
 ### Deployment/security checks
 
 The following checks were run to verify production readiness and deployment
@@ -519,7 +652,7 @@ and review tasks.
 - Helped identify edge cases in upload handling, auth flows, and moderation
   paths by suggesting focused checks.
 
-### Performance and UX optimization
+### Performance and UX optimisation
 
 - Suggested improvements to reduce repeated work (query filtering patterns,
   concise view responses, and lightweight front-end updates).
@@ -595,7 +728,7 @@ work, along with the steps used to resolve them.
 1. Video upload failures on some formats
 
    - Issue: Initial upload flow failed for certain video inputs and edge-case encodings.
-   - Fix: Upload validation and processing logic were updated, then stabilized with follow-up compatibility work.
+   - Fix: Upload validation and processing logic were updated, then stabilised with follow-up compatibility work.
    - Evidence: commits `a48b8e2`, `de0ad17`, `6f39859`, `7020143`.
 2. Encoding compatibility regression
 
@@ -604,7 +737,7 @@ work, along with the steps used to resolve them.
    - Evidence: commits `cf6e018`, `2c42548` (reverts), followed by `d6c0a5b`/`917b314`.
 3. AWS S3 storage usability issues
 
-   - Issue: Cloud media storage behavior needed improvements for practical usage.
+   - Issue: Cloud media storage behaviour needed improvements for practical usage.
    - Fix: S3 integration and storage configuration were refined.
    - Evidence: commits `dcc5e5a`, `ec19a8d`.
 4. Deployment instability and repeated deploy errors
@@ -619,7 +752,7 @@ work, along with the steps used to resolve them.
    - Evidence: commits `cd6fb6d`, `7bb4212`, `05e437a`.
 6. Authentication/access-control gaps
 
-   - Issue: Some flows required tighter auth behavior and more resilient account handling.
+   - Issue: Some flows required tighter auth behaviour and more resilient account handling.
    - Fix: Access restrictions were enforced on protected pages, and a resilient allauth adapter was added.
    - Evidence: commits `c8ba37b`, `6bb2f3c`.
 7. Missing inline comment editing workflow
@@ -639,6 +772,6 @@ work, along with the steps used to resolve them.
    - Evidence: commit `da8b5f7`.
 10. Code-quality defects from static analysis
 
-- Issue: PYLint surfaced style and maintainability issues.
-- Fix: Lint findings were addressed and verification evidence was updated.
-- Evidence: commit `e414991`.
+   - Issue: Pylint surfaced style and maintainability issues.
+   - Fix: Lint findings were addressed and verification evidence was updated.
+   - Evidence: commit `e414991`.
